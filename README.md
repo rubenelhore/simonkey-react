@@ -40,15 +40,15 @@ Simonkey es una plataforma educativa de IA que revoluciona la forma en que estud
 ```
 SIMONKEY-REACT/
 ├── public/
-   ├── vite.svg
+│  ├── vite.svg
 ├── src/
-    ├── assets/
-        ├── react.svg   
-    ├── App.css
-    ├── App.tsx
-    ├── index.css
-    ├── main.tsx
-    ├── vite-env.d.ts
+│   ├── assets/
+│   │   ├── react.svg   
+│   ├── App.css
+│   ├── App.tsx
+│   ├── index.css
+│   ├── main.tsx
+│   ├── vite-env.d.ts
 ├── .gitignore
 ├── eslint.config.js
 ├── index.html    
