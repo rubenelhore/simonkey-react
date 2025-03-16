@@ -25,13 +25,14 @@ const Hero: React.FC = () => {
               </a>
             </div>
           </div>
-          <div className="hero-image">
+            <div className="hero-image">
             <img
               src="/img/imagen.jpg"
               alt="Mascota Simio Simón estudiando"
               className="hero-img"
+              style={{ width: '40%', height: 'auto' }}
             />
-          </div>
+            </div>
         </div>
       </div>
     </section>
