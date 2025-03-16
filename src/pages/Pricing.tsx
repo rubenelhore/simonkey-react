@@ -5,9 +5,14 @@ import './Pricing.css'; // Estilos existentes
 
 const Pricing: React.FC = () => {
   const [showAnnual, setShowAnnual] = useState(false);
+  const [activeQuestion, setActiveQuestion] = useState<number | null>(null);
 
   const togglePricing = () => {
     setShowAnnual(!showAnnual);
+  };
+
+  const toggleFAQ = (index: number) => {
+    setActiveQuestion(activeQuestion === index ? null : index);
   };
 
   return (
@@ -209,6 +214,63 @@ const Pricing: React.FC = () => {
               </tr>
             </tbody>
           </table>
+        </div>
+      </section>
+
+      {/* FAQ Section */}
+      <section className="faq">
+        <div className="container">
+          <h2 className="faq-title">Preguntas Frecuentes</h2>
+          <div className="faq-list">
+            <div className="faq-item">
+              <div
+                className="faq-question"
+                onClick={() => toggleFAQ(0)}
+              >
+                <span className="faq-question-text">
+                  ¿Qué es Simonkey?
+                </span>
+              </div>
+              <div
+                className="faq-answer"
+                style={{ display: activeQuestion === 0 ? 'block' : 'none' }}
+              >
+                Simonkey es una plataforma educativa impulsada por IA que personaliza tu aprendizaje con mnemotecnias, análisis de progreso y más.
+              </div>
+            </div>
+            <div className="faq-item">
+              <div
+                className="faq-question"
+                onClick={() => toggleFAQ(1)}
+              >
+                <span className="faq-question-text">
+                  ¿Puedo cancelar mi suscripción?
+                </span>
+              </div>
+              <div
+                className="faq-answer"
+                style={{ display: activeQuestion === 1 ? 'block' : 'none' }}
+              >
+                Sí, puedes cancelar tu suscripción en cualquier momento desde tu panel de control sin penalizaciones.
+              </div>
+            </div>
+            <div className="faq-item">
+              <div
+                className="faq-question"
+                onClick={() => toggleFAQ(2)}
+              >
+                <span className="faq-question-text">
+                  ¿Qué incluye el plan Pro?
+                </span>
+              </div>
+              <div
+                className="faq-answer"
+                style={{ display: activeQuestion === 2 ? 'block' : 'none' }}
+              >
+                El plan Pro incluye cuadernos ilimitados, mnemotecnias avanzadas con IA, análisis detallado y soporte prioritario.
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
