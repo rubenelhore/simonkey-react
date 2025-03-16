@@ -1,0 +1,221 @@
+import React, { useState } from 'react';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
+import './Pricing.css'; // Estilos existentes
+
+const Pricing: React.FC = () => {
+  const [showAnnual, setShowAnnual] = useState(false);
+
+  const togglePricing = () => {
+    setShowAnnual(!showAnnual);
+  };
+
+  return (
+    <div>
+      <Header />
+      {/* Pricing Hero Section */}
+      <section className="pricing-hero">
+        <div className="container">
+          <h1 className="pricing-title">Planes y Precios</h1>
+          <p className="pricing-subtitle">
+            Encuentra el plan perfecto para ti y comienza a aprender de manera más inteligente con Simonkey.
+          </p>
+          <div className="pricing-toggle">
+            <span className={`toggle-label toggle-monthly ${!showAnnual ? 'active' : ''}`}>
+              Mensual
+            </span>
+            <label className="toggle-switch">
+              <input type="checkbox" id="billing-toggle" onChange={togglePricing} />
+              <span className="toggle-slider"></span>
+            </label>
+            <span className={`toggle-label toggle-annually ${showAnnual ? 'active' : ''}`}>
+              Anual
+            </span>
+            <span className="savings-badge">Ahorra 20%</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Plans Section */}
+      <section className="pricing-plans">
+        <div className="container">
+          <div className="plans-container">
+            <div className="plan-card">
+              <div className="plan-header">
+                <h3 className="plan-name">Gratis</h3>
+                <div className="plan-price">
+                  <span className="plan-price-currency">$</span>
+                  0
+                  <span className="plan-price-period">/mes</span>
+                </div>
+                <p className="plan-description">Ideal para probar Simonkey y sus herramientas básicas.</p>
+              </div>
+              <div className="plan-features">
+                <ul className="feature-list">
+                  <li className="feature-item">
+                    <span className="feature-icon">✔</span>
+                    <span className="feature-text">Acceso a 1 cuaderno digital</span>
+                  </li>
+                  <li className="feature-item">
+                    <span className="feature-icon">✔</span>
+                    <span className="feature-text">Mnemotecnias básicas</span>
+                  </li>
+                  <li className="feature-item">
+                    <span className="feature-icon">✔</span>
+                    <span className="feature-text">Soporte por email</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="plan-footer">
+                <a href="#" className="btn btn-outline btn-block">
+                  Comenzar Gratis
+                </a>
+              </div>
+            </div>
+            <div className="plan-card popular">
+              <div className="popular-badge">Más Popular</div>
+              <div className="plan-header">
+                <h3 className="plan-name">Pro</h3>
+                <div className="plan-price">
+                  <span className="plan-price-currency">$</span>
+                  <span className={showAnnual ? 'annual-price' : 'monthly-price'}>
+                    {showAnnual ? '9.99' : '12.99'}
+                  </span>
+                  <span className="plan-price-period">{showAnnual ? '/año' : '/mes'}</span>
+                </div>
+                <p className="plan-description">Perfecto para estudiantes que buscan herramientas avanzadas.</p>
+              </div>
+              <div className="plan-features">
+                <ul className="feature-list">
+                  <li className="feature-item">
+                    <span className="feature-icon">✔</span>
+                    <span className="feature-text prominent">Todo del plan Gratis</span>
+                  </li>
+                  <li className="feature-item">
+                    <span className="feature-icon">✔</span>
+                    <span className="feature-text">Cuadernos ilimitados</span>
+                  </li>
+                  <li className="feature-item">
+                    <span className="feature-icon">✔</span>
+                    <span className="feature-text">Mnemotecnias avanzadas con IA</span>
+                  </li>
+                  <li className="feature-item">
+                    <span className="feature-icon">✔</span>
+                    <span className="feature-text">Análisis de progreso detallado</span>
+                  </li>
+                  <li className="feature-item">
+                    <span className="feature-icon">✔</span>
+                    <span className="feature-text">Soporte prioritario</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="plan-footer">
+                <a href="#" className="btn btn-primary btn-block">
+                  Elegir Pro
+                </a>
+              </div>
+            </div>
+            <div className="plan-card">
+              <div className="plan-header">
+                <h3 className="plan-name">Premium</h3>
+                <div className="plan-price">
+                  <span className="plan-price-currency">$</span>
+                  <span className={showAnnual ? 'annual-price' : 'monthly-price'}>
+                    {showAnnual ? '19.99' : '24.99'}
+                  </span>
+                  <span className="plan-price-period">{showAnnual ? '/año' : '/mes'}</span>
+                </div>
+                <p className="plan-description">Ideal para estudiantes avanzados y profesionales.</p>
+              </div>
+              <div className="plan-features">
+                <ul className="feature-list">
+                  <li className="feature-item">
+                    <span className="feature-icon">✔</span>
+                    <span className="feature-text prominent">Todo del plan Pro</span>
+                  </li>
+                  <li className="feature-item">
+                    <span className="feature-icon">✔</span>
+                    <span className="feature-text">Acceso multiplaforma sincronizado</span>
+                  </li>
+                  <li className="feature-item">
+                    <span className="feature-icon">✔</span>
+                    <span className="feature-text">Contenido exclusivo de la comunidad</span>
+                  </li>
+                  <li className="feature-item">
+                    <span className="feature-icon">✔</span>
+                    <span className="feature-text">Soporte 24/7</span>
+                  </li>
+                </ul>
+              </div>
+              <div className="plan-footer">
+                <a href="#" className="btn btn-primary btn-block">
+                  Elegir Premium
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Comparison Section */}
+      <section className="comparison">
+        <div className="container">
+          <h2 className="comparison-title">Compara nuestros planes</h2>
+          <table className="comparison-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Gratis</th>
+                <th>Pro</th>
+                <th>Premium</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Cuadernos digitales</td>
+                <td>1</td>
+                <td>Ilimitados</td>
+                <td>Ilimitados</td>
+              </tr>
+              <tr>
+                <td>Mnemotecnias</td>
+                <td>Básicas</td>
+                <td>Avanzadas con IA</td>
+                <td>Avanzadas con IA</td>
+              </tr>
+              <tr>
+                <td>Análisis de progreso</td>
+                <td>-</td>
+                <td>Detallado</td>
+                <td>Detallado</td>
+              </tr>
+              <tr>
+                <td>Acceso multiplataforma</td>
+                <td>-</td>
+                <td>✔</td>
+                <td>✔</td>
+              </tr>
+              <tr>
+                <td>Contenido comunitario</td>
+                <td>-</td>
+                <td>-</td>
+                <td>✔</td>
+              </tr>
+              <tr>
+                <td>Soporte</td>
+                <td>Email</td>
+                <td>Prioritario</td>
+                <td>24/7</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <Footer />
+    </div>
+  );
+};
+
+export default Pricing;
