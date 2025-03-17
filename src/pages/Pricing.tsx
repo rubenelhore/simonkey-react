@@ -59,15 +59,19 @@ const Pricing: React.FC = () => {
                 <ul className="feature-list">
                   <li className="feature-item">
                     <span className="feature-icon">✔</span>
-                    <span className="feature-text">Acceso a 1 cuaderno digital</span>
+                    <span className="feature-text prominent">Acceso a 4 cuadernos</span>
+                  </li>
+                  <li className="feature-item">
+                    <span className="feature-icon">✔</span>
+                    <span className="feature-text">20 conceptos por cuaderno</span>
+                  </li>
+                  <li className="feature-item">
+                    <span className="feature-icon">✔</span>
+                    <span className="feature-text">Extracción de  contenido con IA</span>
                   </li>
                   <li className="feature-item">
                     <span className="feature-icon">✔</span>
                     <span className="feature-text">Mnemotecnias básicas</span>
-                  </li>
-                  <li className="feature-item">
-                    <span className="feature-icon">✔</span>
-                    <span className="feature-text">Soporte por email</span>
                   </li>
                 </ul>
               </div>
@@ -84,7 +88,7 @@ const Pricing: React.FC = () => {
                 <div className="plan-price">
                   <span className="plan-price-currency">$</span>
                   <span className={showAnnual ? 'annual-price' : 'monthly-price'}>
-                    {showAnnual ? '9.99' : '12.99'}
+                    {showAnnual ? '7.99' : '9.99'}
                   </span>
                   <span className="plan-price-period">{showAnnual ? '/año' : '/mes'}</span>
                 </div>
@@ -122,15 +126,15 @@ const Pricing: React.FC = () => {
             </div>
             <div className="plan-card">
               <div className="plan-header">
-                <h3 className="plan-name">Premium</h3>
+                <h3 className="plan-name">Escolar</h3>
                 <div className="plan-price">
                   <span className="plan-price-currency">$</span>
                   <span className={showAnnual ? 'annual-price' : 'monthly-price'}>
-                    {showAnnual ? '19.99' : '24.99'}
+                    {showAnnual ? '4.99' : '3.99'}
                   </span>
                   <span className="plan-price-period">{showAnnual ? '/año' : '/mes'}</span>
                 </div>
-                <p className="plan-description">Ideal para estudiantes avanzados y profesionales.</p>
+                <p className="plan-description">Ideal para escuelas. Desde 20 alumnos.</p>
               </div>
               <div className="plan-features">
                 <ul className="feature-list">
@@ -140,7 +144,7 @@ const Pricing: React.FC = () => {
                   </li>
                   <li className="feature-item">
                     <span className="feature-icon">✔</span>
-                    <span className="feature-text">Acceso multiplaforma sincronizado</span>
+                    <span className="feature-text">Analítica avanzada para la institución</span>
                   </li>
                   <li className="feature-item">
                     <span className="feature-icon">✔</span>
@@ -178,12 +182,24 @@ const Pricing: React.FC = () => {
             <tbody>
               <tr>
                 <td>Cuadernos digitales</td>
-                <td>1</td>
+                <td>4</td>
+                <td>Ilimitados</td>
+                <td>Ilimitados</td>
+              </tr>
+              <tr>
+                <td>Conceptos por cuaderno</td>
+                <td>20</td>
                 <td>Ilimitados</td>
                 <td>Ilimitados</td>
               </tr>
               <tr>
                 <td>Mnemotecnias</td>
+                <td>Básicas</td>
+                <td>Avanzadas con IA</td>
+                <td>Avanzadas con IA</td>
+              </tr>
+              <tr>
+                <td>Herramientas de Estudio</td>
                 <td>Básicas</td>
                 <td>Avanzadas con IA</td>
                 <td>Avanzadas con IA</td>
@@ -207,8 +223,14 @@ const Pricing: React.FC = () => {
                 <td>✔</td>
               </tr>
               <tr>
+                <td>Analítica avanzada para Instituciones</td>
+                <td>-</td>
+                <td>-</td>
+                <td>✔</td>
+              </tr>
+              <tr>
                 <td>Soporte</td>
-                <td>Email</td>
+                <td>Prioritario</td>
                 <td>Prioritario</td>
                 <td>24/7</td>
               </tr>

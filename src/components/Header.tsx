@@ -68,7 +68,20 @@ const Header: React.FC = () => {
             }}>
               Cómo funciona
             </Link>
-            <Link to="/pricing" className="nav-link" onClick={closeMenu}>
+            <Link to="/pricing#header" className="nav-link" onClick={(e) => {
+              e.preventDefault();
+              // Si estamos en la página de pricing, scroll a la sección header
+              if (location.pathname === '/pricing') {
+              const element = document.getElementById('header');
+              if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+              }
+              } else {
+              // Si no, navega a pricing con el hash #header
+              window.location.href = '/pricing#header';
+              }
+              closeMenu();
+            }}>
               Precios
             </Link>
             </div>

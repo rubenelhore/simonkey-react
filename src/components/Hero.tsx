@@ -30,7 +30,7 @@ const Hero: React.FC = () => {
               src="/img/imagen.jpg"
               alt="Mascota Simio Simón estudiando"
               className="hero-img"
-              style={{ width: '40%', height: 'auto' }}
+              style={{ width: '70%', height: 'auto' }}
             />
             </div>
         </div>
