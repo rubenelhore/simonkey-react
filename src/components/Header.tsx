@@ -78,17 +78,14 @@ const Header: React.FC = () => {
             }}>
               Cómo funciona
             </Link>
-            <Link to="/pricing#header" className="nav-link" onClick={(e) => {
+            <Link to="/pricing" className="nav-link" onClick={(e) => {
               e.preventDefault();
-              // Si estamos en la página de pricing, scroll a la sección header
+              // Si estamos en la página de pricing, scroll hasta arriba
               if (location.pathname === '/pricing') {
-              const element = document.getElementById('header');
-              if (element) {
-                element.scrollIntoView({ behavior: 'smooth' });
-              }
+              window.scrollTo({ top: 0, behavior: 'smooth' });
               } else {
-              // Si no, navega a pricing con el hash #header
-              window.location.href = '/pricing#header';
+              // Si no, navega a pricing
+              window.location.href = '/pricing';
               }
               closeMenu();
             }}>
