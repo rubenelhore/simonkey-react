@@ -96,7 +96,7 @@
 }
 
 /* Estilos responsivos */
-@media (max-width: 930px) {
+@media (max-width: 1000px) {
   .hamburger-btn {
     display: block;
   }
@@ -113,6 +113,8 @@
     width: 100%;
     background-color: white;
     padding: 10px 20px;
+    align-items: center; /* Centro los elementos horizontalmente */
+    text-align: center; /* Centro el texto */
   }
 
   .nav.menu-open .nav-links {
@@ -124,6 +126,7 @@
     order: 1;
     border-top: 1px solid #f0f0f0;
     padding-top: 15px;
+    margin-right: 0; /* Elimino el margen derecho para centrar */
   }
 
   .nav.menu-open .nav-link,
@@ -141,5 +144,71 @@
 
   .nav.menu-open .hamburger-line:nth-child(3) {
     transform: rotate(-45deg) translate(7px, -7px);
+  }
+}
+
+/* Agregar al archivo CSS existente */
+
+.nav-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.mobile-menu {
+  display: flex;
+  flex-direction: row; /* Horizontal por defecto para escritorio */
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+/* Media query para dispositivos móviles */
+@media (max-width: 750px) {
+  .hamburger-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+  }
+
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .mobile-menu {
+    display: none; /* Oculto por defecto en móvil */
+    flex-direction: column; /* Vertical en móvil */
+    width: 100%;
+    align-items: flex-start;
+    padding-top: 1rem;
+    gap: 1rem;
+  }
+  
+  .menu-open .mobile-menu {
+    display: flex; /* Mostrar cuando el menú está abierto */
+  }
+  
+  .nav-links {
+    flex-direction: column;
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .nav-link {
+    padding: 0.5rem 0;
+    width: 100%;
+  }
+  
+  .auth-buttons {
+    width: 100%;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .auth-buttons .btn {
+    width: 100%;
+    text-align: center;
   }
 }
