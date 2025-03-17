@@ -36,7 +36,17 @@ const Header: React.FC = () => {
     <header className="header">
       <div className="header-container">
         <nav className={`nav ${isMenuOpen ? 'menu-open' : ''}`}>
-          <Link to="/" className="logo" onClick={closeMenu}>
+            <Link to="/" className="logo" onClick={(e) => {
+            e.preventDefault();
+            // If we're already on home page, scroll to top
+            if (location.pathname === '/') {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+              // If we're on another page, navigate to home
+              window.location.href = '/';
+            }
+            closeMenu();
+            }}>
             <img
               src="/img/favicon.svg"
               alt="Logo Simonkey"
@@ -48,7 +58,7 @@ const Header: React.FC = () => {
               <span style={{ color: 'black' }}>Simon</span>
               <span style={{ color: '#6147FF' }}>key</span>
             </span>
-          </Link>
+            </Link>
           <button className="hamburger-btn" aria-label="Menú" onClick={toggleMenu}>
             <span className="hamburger-line"></span>
             <span className="hamburger-line"></span>

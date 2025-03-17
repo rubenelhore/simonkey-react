@@ -130,7 +130,7 @@ const Pricing: React.FC = () => {
                 <div className="plan-price">
                   <span className="plan-price-currency">$</span>
                   <span className={showAnnual ? 'annual-price' : 'monthly-price'}>
-                    {showAnnual ? '4.99' : '3.99'}
+                    {showAnnual ? '3.99' : '4.99'}
                   </span>
                   <span className="plan-price-period">{showAnnual ? '/año' : '/mes'}</span>
                 </div>
