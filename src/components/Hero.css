@@ -82,6 +82,12 @@
   color: #111827;
 }
 
+@media (max-width: 768px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+}
+
 .highlight {
   color: #4F46E5;
 }
