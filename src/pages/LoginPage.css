@@ -1,16 +1,16 @@
 /* Variables de colores y fuentes */
 :root {
-    --primary-color: #4a6bff;
-    --primary-dark: #3a5ae8;
-    --secondary-color: #ffcc00;
-    --text-color: #333333;
+    --primary-color: var(--primary);
+    --primary-dark: var(--dark);
+    --secondary-color: var(--secondary);
+    --text-color: var(--text);
     --bg-color: #f5f7fa;
     --card-bg: #ffffff;
     --error-color: #ff3b30;
     --success-color: #34c759;
     --border-color: #e0e0e0;
     --border-radius: 12px;
-    --shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    --shadow: 0 8px 30px rgba(113, 76, 76, 0.08);
     --transition: all 0.3s ease;
   }
   

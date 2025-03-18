@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './SignupPage.css';
 // Importa la imagen de la mascota
-import simonLogo from '../assets/react.svg';
+import simonLogo from '/img/favicon.svg';
 
 const SignupPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');

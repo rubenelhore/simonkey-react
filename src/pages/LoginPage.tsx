@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './LoginPage.css';
 // Importa la imagen de la mascota (asegúrate de tener esta imagen en tu proyecto)
-import simonLogo from '../assets/react.svg';
+import simonLogo from '/img/favicon.svg';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -139,7 +139,7 @@ const LoginPage: React.FC = () => {
         </div>
         
         <div className="login-footer">
-          <p>¿No tienes cuenta? <a href="/">Regístrate</a></p>
+          <p>¿No tienes cuenta? <a href="/signup">Regístrate</a></p>
           <p className="forgot-password"><a href="/">¿Olvidaste tu contraseña?</a></p>
         </div>
       </div>

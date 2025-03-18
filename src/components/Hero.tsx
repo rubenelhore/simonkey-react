@@ -17,7 +17,7 @@ const Hero: React.FC = () => {
               <span style={{ color: '#4F46E5', fontWeight: 600 }}>a tu manera</span>.
             </p>
             <div className="hero-buttons">
-              <a href="#" className="btn btn-primary">
+              <a href="/signup" className="btn btn-primary">
                 Comenzar Gratis
               </a>
               <a href="#how-it-works" className="btn btn-outline">
