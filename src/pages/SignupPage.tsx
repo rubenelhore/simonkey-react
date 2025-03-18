@@ -132,7 +132,10 @@ const SignupPage: React.FC = () => {
       <div className="signup-card">
         <div className="signup-header">
           <img src={simonLogo} alt="Simio Simón" className="simon-logo" />
-          <h1><a href="/" style={{ textDecoration: 'none', color: 'inherit' }}>Simonkey</a></h1>
+          <h1><a href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <span style={{ color: 'black' }}>Simon</span>
+              <span style={{ color: '#6147FF' }}>key</span>
+              </a></h1>
           <p className="tagline">Crea tu cuenta y comienza a aprender</p>
         </div>
         

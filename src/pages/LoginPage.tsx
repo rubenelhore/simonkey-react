@@ -66,7 +66,10 @@ const LoginPage: React.FC = () => {
       <div className="login-card">
         <div className="login-header">
           <img src={simonLogo} alt="Simio Simón" className="simon-logo"/>
-            <h1><a href="/" style={{ textDecoration: 'none', color: 'inherit' }}>Simonkey</a></h1>
+              <h1><a href="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+              <span style={{ color: 'black' }}>Simon</span>
+              <span style={{ color: '#6147FF' }}>key</span>
+              </a></h1>
           <p className="tagline">Tu estudio, tu ritmo</p>
         </div>
         
