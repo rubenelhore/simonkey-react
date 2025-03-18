@@ -34,33 +34,6 @@ const HowItWorks: React.FC = () => {
               </p>
             </div>
           </div>
-          <div className="step">
-            <div className="step-number">4</div>
-            <div className="step-content">
-              <h3 className="step-title">Estudia a tu ritmo</h3>
-              <p className="step-description">
-                Utiliza las herramientas creadas para estudiar a tu propio ritmo. Practica con exámenes y cuestionarios para reforzar tu aprendizaje.
-              </p>
-            </div>
-          </div>
-          <div className="step">
-            <div className="step-number">5</div>
-            <div className="step-content">
-              <h3 className="step-title">Haz seguimiento de tu progreso</h3>
-              <p className="step-description">
-                Visualiza tu avance en cada concepto y recibe recomendaciones personalizadas sobre qué repasar según tu nivel de dominio.
-              </p>
-            </div>
-          </div>
-          <div className="step">
-            <div className="step-number">6</div>
-            <div className="step-content">
-              <h3 className="step-title">Conecta con la comunidad</h3>
-              <p className="step-description">
-                Comparte cuadernos con otros estudiantes y accede a material compartido por la comunidad para ampliar tus recursos de estudio.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </section>

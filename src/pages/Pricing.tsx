@@ -21,9 +21,9 @@ const Pricing: React.FC = () => {
       {/* Pricing Hero Section */}
       <section className="pricing-hero">
         <div className="container">
-          <h1 className="pricing-title">Planes y Precios</h1>
+          <h1 className="pricing-title">Planes simples, transparentes y a tu medida</h1>
           <p className="pricing-subtitle">
-            Encuentra el plan perfecto para ti y comienza a aprender de manera más inteligente con Simonkey.
+            Elige el plan que mejor se adapte a tus necesidades de estudio. Sin sorpresas, sin complicaciones.
           </p>
           <div className="pricing-toggle">
             <span className={`toggle-label toggle-monthly ${!showAnnual ? 'active' : ''}`}>
@@ -250,52 +250,87 @@ const Pricing: React.FC = () => {
                 onClick={() => toggleFAQ(0)}
               >
                 <span className="faq-question-text">
-                  ¿Qué es Simonkey?
+                  ¿Puedo cambiar de plan en cualquier momento?
                 </span>
               </div>
               <div
                 className="faq-answer"
                 style={{ display: activeQuestion === 0 ? 'block' : 'none' }}
               >
-                Simonkey es una plataforma educativa impulsada por IA que personaliza tu aprendizaje con mnemotecnias, análisis de progreso y más.
+                Sí, puedes actualizar o cambiar tu plan en cualquier momento. Si actualizas a un plan superior, se te cobrará la diferencia prorrateada por el tiempo restante de tu suscripción actual. Si cambias a un plan inferior, el nuevo plan entrará en vigor al final de tu ciclo de facturación actual.
               </div>
             </div>
+            
             <div className="faq-item">
               <div
                 className="faq-question"
                 onClick={() => toggleFAQ(1)}
               >
                 <span className="faq-question-text">
-                  ¿Puedo cancelar mi suscripción?
+                  ¿Cómo funciona el período de prueba?
                 </span>
               </div>
               <div
                 className="faq-answer"
                 style={{ display: activeQuestion === 1 ? 'block' : 'none' }}
               >
-                Sí, puedes cancelar tu suscripción en cualquier momento desde tu panel de control sin penalizaciones.
+                Todos los planes de pago incluyen un período de prueba gratuito de 14 días. No se te cobrará hasta que finalice el período de prueba, y puedes cancelar en cualquier momento antes de que termine sin ningún cargo.
               </div>
             </div>
+            
             <div className="faq-item">
               <div
                 className="faq-question"
                 onClick={() => toggleFAQ(2)}
               >
                 <span className="faq-question-text">
-                  ¿Qué incluye el plan Pro?
+                  ¿Qué métodos de pago aceptan?
                 </span>
               </div>
               <div
                 className="faq-answer"
                 style={{ display: activeQuestion === 2 ? 'block' : 'none' }}
               >
-                El plan Pro incluye cuadernos ilimitados, mnemotecnias avanzadas con IA, análisis detallado y soporte prioritario.
+                Aceptamos tarjetas de crédito y débito (Visa, Mastercard, American Express), PayPal y, en algunos países, opciones de pago locales como transferencia bancaria.
+              </div>
+            </div>
+
+            <div className="faq-item">
+              <div
+                className="faq-question"
+                onClick={() => toggleFAQ(3)}
+              >
+                <span className="faq-question-text">
+                  ¿Puedo cancelar mi suscripción en cualquier momento?
+                </span>
+              </div>
+              <div
+                className="faq-answer"
+                style={{ display: activeQuestion === 3 ? 'block' : 'none' }}
+              >
+                Sí, puedes cancelar tu suscripción en cualquier momento desde la configuración de tu cuenta. Si cancelas, mantendrás el acceso a las características de tu plan hasta el final del período de facturación actual.
+              </div>
+            </div>
+
+            <div className="faq-item">
+              <div
+                className="faq-question"
+                onClick={() => toggleFAQ(4)}
+              >
+                <span className="faq-question-text">
+                  ¿Qué pasa con mis datos si cancelo mi suscripción?
+                </span>
+              </div>
+              <div
+                className="faq-answer"
+                style={{ display: activeQuestion === 4 ? 'block' : 'none' }}
+              >
+                Si cancelas tu suscripción de pago, tu cuenta se convertirá automáticamente al plan Básico gratuito. Podrás seguir accediendo a tus datos, aunque algunas funciones premium ya no estarán disponibles. Si deseas eliminar completamente tu cuenta y todos tus datos, puedes hacerlo desde la configuración de tu cuenta.
               </div>
             </div>
           </div>
         </div>
       </section>
-
       {/* Footer */}
       <Footer />
     </div>
