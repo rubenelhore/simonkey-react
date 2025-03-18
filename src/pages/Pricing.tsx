@@ -63,7 +63,7 @@ const Pricing: React.FC = () => {
                   </li>
                   <li className="feature-item">
                     <span className="feature-icon">✔</span>
-                    <span className="feature-text">1 millón de tokens</span>
+                    <span className="feature-text">100,000 tokens de IA</span>
                   </li>
                   <li className="feature-item">
                     <span className="feature-icon">✔</span>
@@ -106,7 +106,7 @@ const Pricing: React.FC = () => {
                   </li>
                   <li className="feature-item">
                     <span className="feature-icon">✔</span>
-                    <span className="feature-text">5 millones de tokens de IA al mes</span>
+                    <span className="feature-text">1 millón de tokens de IA al mes</span>
                   </li>
                   <li className="feature-item">
                     <span className="feature-icon">✔</span>

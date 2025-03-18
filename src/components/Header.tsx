@@ -92,14 +92,14 @@ const Header: React.FC = () => {
               Precios
             </Link>
             </div>
-          <div className="auth-buttons">
-            <a href="#" className="btn btn-outline" onClick={closeMenu}>
+            <div className="auth-buttons">
+            <Link to="/login" className="btn btn-outline" onClick={closeMenu}>
               Iniciar Sesión
-            </a>
-            <a href="#" className="btn btn-primary" onClick={closeMenu}>
+            </Link>
+            <Link to="/signup" className="btn btn-primary" onClick={closeMenu}>
               Registrarse
-            </a>
-          </div>
+            </Link>
+            </div>
         </nav>
       </div>
     </header>

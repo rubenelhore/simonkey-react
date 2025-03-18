@@ -9,6 +9,8 @@ import CTA from './components/CTA';
 import Footer from './components/Footer';
 import Pricing from './pages/Pricing';
 import SimonkeyCarousel from './components/SimonkeyCarousel';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
 
 const HomePage: React.FC = () => {
   const location = useLocation();
@@ -67,6 +69,8 @@ const App: React.FC = () => {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/pricing" element={<Pricing />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
     </Routes>
   );
 };
