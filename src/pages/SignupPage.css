@@ -1,7 +1,7 @@
 /* Variables de colores y fuentes - Igual que en LoginPage.css para mantener consistencia */
 :root {
     --primary-color: var(--primary);
-    --primary-dark: var(--dark);
+    --primary-dark: #4a6bff97;
     --secondary-color: var(--secondary);
     --text-color: var(--text);
     --bg-color: #f5f7fa;
