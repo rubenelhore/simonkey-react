@@ -65,8 +65,8 @@ const LoginPage: React.FC = () => {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <img src={simonLogo} alt="Simio Simón" className="simon-logo" />
-          <h1>Simonkey</h1>
+          <img src={simonLogo} alt="Simio Simón" className="simon-logo"/>
+            <h1><a href="/" style={{ textDecoration: 'none', color: 'inherit' }}>Simonkey</a></h1>
           <p className="tagline">Tu estudio, tu ritmo</p>
         </div>
         
