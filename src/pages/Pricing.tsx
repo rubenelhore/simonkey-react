@@ -189,8 +189,8 @@ const Pricing: React.FC = () => {
               <tr>
                 <td>Tokens de IA</td>
                 <td>100,000</td>
-                <td>1,000,000 mensuales</td>
-                <td>1,000,000 mensuales</td>
+                <td>1,000,000 /mes</td>
+                <td>1,000,000 /mes</td>
               </tr>
               <tr>
                 <td>Mnemotecnias</td>
@@ -244,6 +244,24 @@ const Pricing: React.FC = () => {
         <div className="container">
           <h2 className="faq-title">Preguntas Frecuentes</h2>
           <div className="faq-list">
+
+          <div className="faq-item">
+              <div
+                className="faq-question"
+                onClick={() => toggleFAQ(4)}
+              >
+                <span className="faq-question-text">
+                  ¿Qué son los tokens de IA?
+                </span>
+              </div>
+              <div
+                className="faq-answer"
+                style={{ display: activeQuestion === 4 ? 'block' : 'none' }}
+              >
+                Los tokens de IA son la moneda virtual que utilizamos para medir el uso de las herramientas de inteligencia artificial en Simonkey. Cada acción que realices con la IA, como extraer contenido o crear mnemotecnias, consume tokens. Los planes de pago incluyen una cantidad mensual de tokens.
+              </div>
+            </div>
+
             <div className="faq-item">
               <div
                 className="faq-question"
