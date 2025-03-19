@@ -66,6 +66,23 @@
   flex: 1;
   display: flex;
   justify-content: center;
+  align-items: center;
+}
+
+.hero-image img {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 .hero-img {
@@ -97,6 +114,12 @@
   margin-bottom: 2rem;
   line-height: 1.6;
   color: #6B7280;
+}
+
+@media (max-width: 768px) {
+  .hero-subtitle {
+    font-size: 0.95rem;
+  }
 }
 
 .hero-buttons {
