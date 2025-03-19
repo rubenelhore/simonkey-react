@@ -7,7 +7,7 @@ const CTA: React.FC = () => {
       <div className="container">
         <h2 className="cta-title">Comienza a estudiar de forma más inteligente</h2>
         <p className="cta-description">
-          Únete a miles de estudiantes que ya están mejorando su forma de aprender con Simonkey.
+          Únete a la comunidad que ya está mejorando su forma de aprender con Simonkey.
         </p>
         <a href="/signup" className="btn btn-white">
           Registrarse Gratis

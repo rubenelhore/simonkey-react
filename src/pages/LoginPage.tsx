@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
 import './LoginPage.css';
-// Importa la imagen de la mascota (asegúrate de tener esta imagen en tu proyecto)
+// Importa la imagen de la mascota
 import simonLogo from '/img/favicon.svg';
+// Importaciones de Firebase
+import { 
+  signInWithEmailAndPassword, 
+  signInWithPopup, 
+  GoogleAuthProvider,
+  OAuthProvider 
+} from 'firebase/auth';
+import { auth } from '../services/firebase'; // Corregida la ruta del servicio
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -19,7 +27,7 @@ const LoginPage: React.FC = () => {
     setError(null);
   };
   
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!email || !password) {
@@ -27,38 +35,61 @@ const LoginPage: React.FC = () => {
       return;
     }
     
-    // Simulamos el proceso de carga
     setIsLoading(true);
     
-    // Simulamos un inicio de sesión exitoso después de 1.5 segundos
-    setTimeout(() => {
+    try {
+      // Usar Firebase para el inicio de sesión
+      await signInWithEmailAndPassword(auth, email, password);
+      console.log('Inicio de sesión exitoso');
+      // Aquí puedes redirigir al usuario a la página principal
+      // Por ejemplo: navigate('/dashboard');
+    } catch (err: any) {
+      // Manejar errores específicos de Firebase
+      let errorMessage = 'Error al iniciar sesión';
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        errorMessage = 'Correo o contraseña incorrectos';
+      } else if (err.code === 'auth/too-many-requests') {
+        errorMessage = 'Demasiados intentos fallidos. Inténtalo más tarde';
+      }
+      setError(errorMessage);
+      console.error('Error de autenticación:', err);
+    } finally {
       setIsLoading(false);
-      // Para la maqueta, simplemente mostramos un mensaje en la consola
-      console.log('Inicio de sesión exitoso con:', { email, password });
-      alert('Inicio de sesión exitoso (simulado)');
-    }, 1500);
+    }
   };
   
-  const handleGoogleLogin = () => {
+  const handleGoogleLogin = async () => {
     setIsLoading(true);
     
-    // Simulamos un proceso de autenticación
-    setTimeout(() => {
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      console.log('Inicio de sesión con Google exitoso');
+      // Redirigir después del inicio de sesión exitoso
+      // navigate('/dashboard');
+    } catch (err: any) {
+      console.error('Error en inicio de sesión con Google:', err);
+      setError('Error al iniciar sesión con Google');
+    } finally {
       setIsLoading(false);
-      console.log('Inicio de sesión con Google');
-      alert('Inicio de sesión con Google (simulado)');
-    }, 1500);
+    }
   };
   
-  const handleAppleLogin = () => {
+  const handleAppleLogin = async () => {
     setIsLoading(true);
     
-    // Simulamos un proceso de autenticación
-    setTimeout(() => {
+    try {
+      const provider = new OAuthProvider('apple.com');
+      await signInWithPopup(auth, provider);
+      console.log('Inicio de sesión con Apple exitoso');
+      // Redirigir después del inicio de sesión exitoso
+      // navigate('/dashboard');
+    } catch (err: any) {
+      console.error('Error en inicio de sesión con Apple:', err);
+      setError('Error al iniciar sesión con Apple');
+    } finally {
       setIsLoading(false);
-      console.log('Inicio de sesión con Apple');
-      alert('Inicio de sesión con Apple (simulado)');
-    }, 1500);
+    }
   };
   
   return (
@@ -143,7 +174,7 @@ const LoginPage: React.FC = () => {
         
         <div className="login-footer">
           <p>¿No tienes cuenta? <a href="/signup">Regístrate</a></p>
-          <p className="forgot-password"><a href="/">¿Olvidaste tu contraseña?</a></p>
+          <p className="forgot-password"><a href="/reset-password">¿Olvidaste tu contraseña?</a></p>
         </div>
       </div>
     </div>

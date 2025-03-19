@@ -2,6 +2,16 @@ import React, { useState } from 'react';
 import './SignupPage.css';
 // Importa la imagen de la mascota
 import simonLogo from '/img/favicon.svg';
+// Importaciones de Firebase
+import { 
+  createUserWithEmailAndPassword, 
+  signInWithPopup, 
+  GoogleAuthProvider,
+  OAuthProvider,
+  updateProfile 
+} from 'firebase/auth';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, firestore } from '../services/firebase';
 
 const SignupPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -86,45 +96,108 @@ const SignupPage: React.FC = () => {
     return true;
   };
   
-  const handleSignup = (e: React.FormEvent) => {
+  const createUserProfile = async (userId: string) => {
+    try {
+      // Añadir usuario a Firestore con datos adicionales
+      await setDoc(doc(firestore, 'users', userId), {
+        email,
+        username,
+        birthdate,
+        createdAt: serverTimestamp(),
+        subscription: 'free',
+        notebookCount: 0
+      });
+      
+      // Actualizar el perfil del usuario en Auth
+      if (auth.currentUser) {
+        await updateProfile(auth.currentUser, {
+          displayName: username
+        });
+      }
+    } catch (err) {
+      console.error('Error al crear perfil de usuario:', err);
+      throw err;
+    }
+  };
+  
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateForm()) {
       return;
     }
     
-    // Simulamos el proceso de carga
     setIsLoading(true);
     
-    // Simulamos un registro exitoso después de 1.5 segundos
-    setTimeout(() => {
+    try {
+      // Crear usuario con email y contraseña
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      
+      // Crear perfil de usuario en Firestore
+      await createUserProfile(user.uid);
+      
+      console.log('Registro exitoso');
+      // Aquí puedes redirigir al usuario a la página principal
+      // Por ejemplo: navigate('/dashboard');
+    } catch (err: any) {
+      let errorMessage = 'Error al registrarse';
+      if (err.code === 'auth/email-already-in-use') {
+        errorMessage = 'Este correo electrónico ya está en uso';
+      } else if (err.code === 'auth/invalid-email') {
+        errorMessage = 'Correo electrónico inválido';
+      } else if (err.code === 'auth/weak-password') {
+        errorMessage = 'La contraseña es demasiado débil';
+      }
+      setError(errorMessage);
+      console.error('Error de registro:', err);
+    } finally {
       setIsLoading(false);
-      // Para la maqueta, simplemente mostramos un mensaje en la consola
-      console.log('Registro exitoso con:', { email, username, password, birthdate });
-      alert('Registro exitoso (simulado)');
-    }, 1500);
+    }
+  };
+  
+  const handleProviderSignup = async (provider: GoogleAuthProvider | OAuthProvider) => {
+    setIsLoading(true);
+    
+    try {
+      // Iniciar sesión con proveedor
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      // Verificar si es un usuario nuevo para crear su perfil
+      const isNewUser = result.operationType === 'signIn';
+      
+      if (isNewUser && user.email) {
+        // Crear perfil en Firestore con datos disponibles
+        await setDoc(doc(firestore, 'users', user.uid), {
+          email: user.email,
+          username: user.displayName || user.email.split('@')[0],
+          birthdate: null, // No podemos obtener esto de los proveedores
+          createdAt: serverTimestamp(),
+          subscription: 'free',
+          notebookCount: 0
+        });
+      }
+      
+      console.log('Registro con proveedor exitoso');
+      // Redirigir después del registro exitoso
+      // navigate('/dashboard');
+    } catch (err: any) {
+      console.error('Error en registro con proveedor:', err);
+      setError('Error al registrarse con proveedor externo');
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   const handleGoogleSignup = () => {
-    setIsLoading(true);
-    
-    // Simulamos un proceso de autenticación
-    setTimeout(() => {
-      setIsLoading(false);
-      console.log('Registro con Google');
-      alert('Registro con Google (simulado)');
-    }, 1500);
+    const provider = new GoogleAuthProvider();
+    handleProviderSignup(provider);
   };
   
   const handleAppleSignup = () => {
-    setIsLoading(true);
-    
-    // Simulamos un proceso de autenticación
-    setTimeout(() => {
-      setIsLoading(false);
-      console.log('Registro con Apple');
-      alert('Registro con Apple (simulado)');
-    }, 1500);
+    const provider = new OAuthProvider('apple.com');
+    handleProviderSignup(provider);
   };
   
   return (
