@@ -36,7 +36,7 @@ const Pricing: React.FC = () => {
             <span className={`toggle-label toggle-annually ${showAnnual ? 'active' : ''}`}>
               Anual
             </span>
-            <span className="savings-badge">Ahorra 20%</span>
+            <span className="savings-badge">Ahorra 25%</span>
           </div>
         </div>
       </section>
@@ -83,17 +83,18 @@ const Pricing: React.FC = () => {
             </div>
             <div className="plan-card popular">
               <div className="popular-badge">Más Popular</div>
-              <div className="plan-header">
-                <h3 className="plan-name">Pro</h3>
-                <div className="plan-price">
-                  <span className="plan-price-currency">$</span>
-                  <span className={showAnnual ? 'annual-price' : 'monthly-price'}>
-                    {showAnnual ? '7.99' : '9.99'}
-                  </span>
-                  <span className="plan-price-period">{showAnnual ? '/año' : '/mes'}</span>
+                <div className="plan-header">
+                  <h3 className="plan-name">Pro</h3>
+                  <div className="plan-price">
+                    <span className="plan-price-currency">$</span>
+                    <span className={showAnnual ? 'annual-price' : 'monthly-price'}>
+                    {showAnnual ? '89.99' : '9.99'}
+                    </span>
+                    <span className="plan-price-period">{showAnnual ? '/año' : '/mes'}</span>
+                    {showAnnual && <span className="monthly-equivalent" style={{ fontSize: '0.40em', color: '#1DB173' }}>($7.50/mes)</span>}
+                  </div>
+                  <p className="plan-description">Ideal para estudiantes que quieren para maximizar el tiempo y eficiencia de estudio. </p>
                 </div>
-                <p className="plan-description">Perfecto para estudiantes que buscan herramientas avanzadas.</p>
-              </div>
               <div className="plan-features">
                 <ul className="feature-list">
                   <li className="feature-item">
@@ -130,9 +131,10 @@ const Pricing: React.FC = () => {
                 <div className="plan-price">
                   <span className="plan-price-currency">$</span>
                   <span className={showAnnual ? 'annual-price' : 'monthly-price'}>
-                    {showAnnual ? '5.99' : '7.99'}
+                  {showAnnual ? '69.99' : '7.99'}
                   </span>
                   <span className="plan-price-period">{showAnnual ? '/año' : '/mes'}</span>
+                  {showAnnual && <span className="monthly-equivalent" style={{ fontSize: '0.40em', color: '#1DB173' }}>($5.90/mes)</span>}
                 </div>
                 <p className="plan-description">Ideal para Instituciones. Precios a partir de 20 alumnos.</p>
               </div>

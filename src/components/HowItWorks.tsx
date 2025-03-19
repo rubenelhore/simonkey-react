@@ -10,7 +10,7 @@ const HowItWorks: React.FC = () => {
           <div className="step">
             <div className="step-number">1</div>
             <div className="step-content">
-              <h3 className="step-title">Crea tu cuaderno digital</h3>
+              <h3 className="step-title">Crea tu cuaderno</h3>
               <p className="step-description">
                 Crea un nuevo cuaderno para la materia o tema que deseas estudiar. Simonkey te permite organizar tus estudios por áreas específicas.
               </p>
@@ -28,7 +28,7 @@ const HowItWorks: React.FC = () => {
           <div className="step">
             <div className="step-number">3</div>
             <div className="step-content">
-              <h3 className="step-title">Genera herramientas de estudio</h3>
+              <h3 className="step-title">Genera mnemotecnias</h3>
               <p className="step-description">
                 Selecciona los conceptos que quieres aprender y crea herramientas de estudio personalizadas: tarjetas, historias, canciones y mnemotecnias.
               </p>

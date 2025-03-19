@@ -65,7 +65,7 @@ const Features: React.FC = () => {
                 />
               </svg>
             </div>
-            <h3 className="feature-title">Mnemotecnias Personalizadas</h3>
+            <h3 className="feature-title">Enfoque Personalizado</h3>
             <p className="feature-description">
               Aprende más rápido con técnicas de memorización personalizadas: historias, canciones e imágenes creadas por IA.
             </p>
