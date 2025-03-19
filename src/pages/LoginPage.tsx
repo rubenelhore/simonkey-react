@@ -6,8 +6,7 @@ import simonLogo from '/img/favicon.svg';
 import { 
   signInWithEmailAndPassword, 
   signInWithPopup, 
-  GoogleAuthProvider,
-  OAuthProvider 
+  GoogleAuthProvider
 } from 'firebase/auth';
 import { auth } from '../services/firebase'; // Corregida la ruta del servicio
 
@@ -70,23 +69,6 @@ const LoginPage: React.FC = () => {
     } catch (err: any) {
       console.error('Error en inicio de sesión con Google:', err);
       setError('Error al iniciar sesión con Google');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-  
-  const handleAppleLogin = async () => {
-    setIsLoading(true);
-    
-    try {
-      const provider = new OAuthProvider('apple.com');
-      await signInWithPopup(auth, provider);
-      console.log('Inicio de sesión con Apple exitoso');
-      // Redirigir después del inicio de sesión exitoso
-      // navigate('/dashboard');
-    } catch (err: any) {
-      console.error('Error en inicio de sesión con Apple:', err);
-      setError('Error al iniciar sesión con Apple');
     } finally {
       setIsLoading(false);
     }
@@ -156,18 +138,6 @@ const LoginPage: React.FC = () => {
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
               Google
-            </button>
-            
-            <button 
-              className="apple-button" 
-              onClick={handleAppleLogin}
-              disabled={isLoading}
-            >
-              <svg viewBox="0 0 24 24" width="18" height="18">
-                <path d="M17.05 20.28c-.98.95-2.05.86-3.08.38-1.09-.5-2.07-.48-3.2 0-1.44.62-2.2.44-3.05-.38C2.79 15.24 3.51 7.25 8.92 7c1.36.06 2.04.5 3.01.5.97 0 1.57-.5 3.11-.5 1.25.03 2.2.39 2.98 1.11-2.34 1.52-1.96 4.94.45 6.17-.67 1.96-1.76 3.99-3.43 6" fill="#000"/>
-                <path d="M12.77 4.67c.7-.83 1.17-2 1.02-3.17-1.08.09-2.38.74-3.14 1.64-.68.78-1.25 1.99-1.02 3.16 1.19.09 2.37-.65 3.14-1.63" fill="#000"/>
-              </svg>
-              Apple
             </button>
           </div>
         </div>
