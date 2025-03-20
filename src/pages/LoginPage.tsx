@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './LoginPage.css';
 // Importa la imagen de la mascota
 import simonLogo from '/img/favicon.svg';
@@ -6,15 +6,30 @@ import simonLogo from '/img/favicon.svg';
 import { 
   signInWithEmailAndPassword, 
   signInWithPopup, 
-  GoogleAuthProvider
+  GoogleAuthProvider,
+  onAuthStateChanged
 } from 'firebase/auth';
 import { auth } from '../services/firebase'; // Corregida la ruta del servicio
+import { useNavigate } from 'react-router-dom';
 
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const navigate = useNavigate();
+  
+  // Check if user is already logged in
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in, redirect to notebooks
+        navigate('/notebooks');
+      }
+    });
+    
+    return () => unsubscribe();
+  }, [navigate]);
   
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
@@ -40,8 +55,7 @@ const LoginPage: React.FC = () => {
       // Usar Firebase para el inicio de sesión
       await signInWithEmailAndPassword(auth, email, password);
       console.log('Inicio de sesión exitoso');
-      // Aquí puedes redirigir al usuario a la página principal
-      // Por ejemplo: navigate('/dashboard');
+      navigate('/notebooks');
     } catch (err: any) {
       // Manejar errores específicos de Firebase
       let errorMessage = 'Error al iniciar sesión';
@@ -62,13 +76,35 @@ const LoginPage: React.FC = () => {
     
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      // Add additional scopes if needed
+      provider.addScope('profile');
+      provider.addScope('email');
+      
+      // Set custom parameters to handle cross-origin issues
+      provider.setCustomParameters({
+        prompt: 'select_account',
+        ...(email ? { login_hint: email } : {})
+      });
+      
+      const result = await signInWithPopup(auth, provider);
       console.log('Inicio de sesión con Google exitoso');
-      // Redirigir después del inicio de sesión exitoso
-      // navigate('/dashboard');
+      
+      if (result.user) {
+        navigate('/notebooks');
+      }
     } catch (err: any) {
       console.error('Error en inicio de sesión con Google:', err);
-      setError('Error al iniciar sesión con Google');
+      let errorMessage = 'Error al iniciar sesión con Google';
+      
+      if (err.code === 'auth/popup-closed-by-user') {
+        errorMessage = 'Se cerró la ventana de inicio de sesión';
+      } else if (err.code === 'auth/popup-blocked') {
+        errorMessage = 'El navegador bloqueó la ventana emergente. Por favor, permite ventanas emergentes para este sitio.';
+      } else if (err.code === 'auth/cancelled-popup-request') {
+        errorMessage = 'La solicitud de inicio de sesión fue cancelada';
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
