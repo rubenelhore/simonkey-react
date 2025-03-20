@@ -1,13 +1,29 @@
 // src/services/firebase.ts
 
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
-import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
+import { initializeApp } from 'firebase/app';
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { 
+  getFirestore, 
+  enableIndexedDbPersistence,
+  collection,
+  doc,
+  query,
+  where,
+  orderBy,
+  limit,
+  getDocs,
+  getDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  serverTimestamp,
+  Timestamp 
+} from 'firebase/firestore';
 import { getStorage } from "firebase/storage";
 
-// Configuración de Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyC26QZw7297E_YOoF5OqR2Ck6x_bw5_Hic",
+// Tu configuración de Firebase
+const firebaseConfig = {  apiKey: "AIzaSyC26QZw7297E_YOoF5OqR2Ck6x_bw5_Hic",
   authDomain: "simonkey-5c78f.firebaseapp.com",
   projectId: "simonkey-5c78f",
   storageBucket: "simonkey-5c78f.firebasestorage.app",
@@ -15,13 +31,13 @@ const firebaseConfig = {
   appId: "1:235501879490:web:05fea6dae9c63b2a827b5b"
 };
 
-// Inicializar Firebase solo si no existe una instancia previa
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+// Inicializar Firebase
+const app = initializeApp(firebaseConfig);
 
-// Inicializar servicios - Corregido para evitar duplicación
-const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
+// Exportar servicios de Firebase
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
 
 // Configurar persistencia para autenticación (mantener sesión activa)
 setPersistence(auth, browserLocalPersistence)
@@ -50,14 +66,6 @@ if (typeof window !== 'undefined') {
   }
 }
 
-// Exportar todo lo que necesitamos
-export { 
-  app, 
-  auth, 
-  db, // Exportamos db como firestore principal
-  storage
-};
-
 // Exportación explícita de Firestore (para mayor claridad)
 export const firestore = db;
 
@@ -77,8 +85,7 @@ export {
   onSnapshot,
   serverTimestamp,
   Timestamp
-} from 'firebase/firestore';
-
+};
 
 // Funciones de utilidad para trabajar con Firebase
 export const firebaseUtils = {

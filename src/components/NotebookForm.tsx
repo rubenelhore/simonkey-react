@@ -1,4 +1,3 @@
-// src/components/NotebookForm.tsx
 import { useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../services/firebase';
@@ -11,13 +10,22 @@ interface NotebookFormProps {
 const NotebookForm: React.FC<NotebookFormProps> = ({ onCreate }) => {
   const [title, setTitle] = useState('');
   const [user] = useAuthState(auth);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !title) return;
-    await createNotebook(user.uid, title);
-    setTitle(''); // Clear the form
-    onCreate(); // Refresh the notebook list
+    if (!user || !title.trim() || isSubmitting) return;
+    
+    try {
+      setIsSubmitting(true);
+      await createNotebook(user.uid, title);
+      setTitle(''); // Clear the form
+      onCreate(); // Refresh the notebook list
+    } catch (error) {
+      console.error("Error creating notebook:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -29,9 +37,14 @@ const NotebookForm: React.FC<NotebookFormProps> = ({ onCreate }) => {
         placeholder="Ingresa el nombre"
         required
         style={{ fontFamily: "'Poppins', sans-serif" }}
+        disabled={isSubmitting}
       />
-      <button type="submit" style={{ fontFamily: "'Poppins', sans-serif" }}>
-        Crear Cuaderno
+      <button 
+        type="submit" 
+        style={{ fontFamily: "'Poppins', sans-serif" }}
+        disabled={isSubmitting}
+      >
+        {isSubmitting ? 'Creando...' : 'Crear Cuaderno'}
       </button>
     </form>
   );

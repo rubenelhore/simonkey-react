@@ -1,42 +1,46 @@
 // src/pages/Notebooks.tsx
 import { useState, useEffect } from 'react';
+import { useAuthState } from 'react-firebase-hooks/auth';
 import { useNotebooks } from '../hooks/useNotebooks';
 import NotebookList from '../components/NotebookList';
 import NotebookForm from '../components/NotebookForm';
 import { auth } from '../services/firebase';
 import { signOut } from 'firebase/auth';
+import { Timestamp } from 'firebase/firestore';
 import '../styles/Notebooks.css';
 
 const Notebooks: React.FC = () => {
-  const { notebooks, loading } = useNotebooks();
-  const [notebookList, setNotebookList] = useState(notebooks);
+  const [user] = useAuthState(auth);
+  const { notebooks, loading, error } = useNotebooks();
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false); // State for mobile menu
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    // Set user email when auth state changes
-    const user = auth.currentUser;
     if (user) {
       setUserEmail(user.email);
     }
-  }, []);
+  }, [user]);
 
-  // Update the list when a notebook is created or deleted
-  const handleCreate = () => {
-    setNotebookList([...notebookList]); // Trigger a re-render (or refetch)
+  const handleCreate = async () => {
+    console.log("Notebook created successfully");
   };
 
   const handleDelete = (id: string) => {
-    setNotebookList(notebookList.filter((notebook) => notebook.id !== id));
+    console.log("Notebook deleted successfully");
   };
 
   const handleLogout = async () => {
     await signOut(auth);
   };
 
-  // Toggle mobile menu
   const toggleMenu = () => {
     setMenuOpen(prevState => !prevState);
+    // Prevenir scroll cuando el menú está abierto
+    if (!menuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
   };
 
   if (loading) {
@@ -44,6 +48,15 @@ const Notebooks: React.FC = () => {
       <div className="loading-container">
         <div className="spinner"></div>
         <p>Cargando tus cuadernos...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    console.error("Error loading notebooks:", error);
+    return (
+      <div className="error-container">
+        <p>Ocurrió un error al cargar los cuadernos. Por favor, intenta de nuevo.</p>
       </div>
     );
   }
@@ -66,19 +79,18 @@ const Notebooks: React.FC = () => {
             </h1>
           </div>
           
-          {/* Hamburger button for mobile */}
           <button className="notebooks-hamburger-btn" aria-label="Menú" onClick={toggleMenu}>
             <span className="notebooks-hamburger-line"></span>
             <span className="notebooks-hamburger-line"></span>
             <span className="notebooks-hamburger-line"></span>
           </button>
           
-            <div className={`user-section ${menuOpen ? 'mobile-menu' : ''}`} style={{ fontFamily: 'Poppins, sans-serif' }}>
+          <div className={`user-section ${menuOpen ? 'mobile-menu' : ''}`} style={{ fontFamily: 'Poppins, sans-serif' }}>
             {userEmail && <p className="user-email hide-on-mobile">{userEmail}</p>}
             <button className="logout-button hide-on-mobile" onClick={handleLogout} style={{ fontFamily: 'Poppins, sans-serif' }}>
               <i className="fas fa-sign-out-alt"></i> Cerrar sesión
             </button>
-            </div>
+          </div>
         </div>
       </header>
       
@@ -90,12 +102,22 @@ const Notebooks: React.FC = () => {
         
         <div className="notebooks-list-section">
           <h2>Mis cuadernos</h2>
-          {notebookList.length === 0 ? (
+          {notebooks && notebooks.length === 0 ? (
             <div className="empty-state">
               <p>No tienes cuadernos aún. ¡Crea uno para comenzar!</p>
             </div>
           ) : (
-            <NotebookList notebooks={notebookList} onDelete={handleDelete} />
+            <NotebookList 
+              notebooks={(notebooks || []).map(notebook => ({
+                ...notebook,
+                createdAt: notebook.createdAt instanceof Date ? 
+                  notebook.createdAt : 
+                  (notebook.createdAt && typeof notebook.createdAt.toDate === 'function' ? 
+                    notebook.createdAt.toDate() : 
+                    new Date())
+              }))} 
+              onDelete={handleDelete} 
+            />
           )}
         </div>
       </main>

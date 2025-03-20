@@ -11,7 +11,7 @@ import Pricing from './pages/Pricing';
 import SimonkeyCarousel from './components/SimonkeyCarousel';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import Notebook from './pages/Notebook'; // Importamos la página de Notebooks
+import Notebooks from './pages/Notebooks'; // Importamos la página de Notebooks
 import { useAuthState } from 'react-firebase-hooks/auth'; // Firebase hook para el estado de autenticación
 import { auth } from './services/firebase'; // Importamos auth desde el archivo firebase.ts modificado
 
@@ -144,7 +144,7 @@ const App: React.FC = () => {
           {/* Ruta protegida para notebooks */}
           <Route
             path="/notebooks"
-            element={user.isAuthenticated ? <Notebook /> : <Navigate to="/login" />}
+            element={user.isAuthenticated ? <Notebooks /> : <Navigate to="/login" />}
           />
         </Routes>
       </BrowserRouter>

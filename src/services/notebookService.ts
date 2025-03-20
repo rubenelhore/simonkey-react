@@ -1,6 +1,6 @@
 // src/services/notebookService.ts
 import { db } from './firebase';
-import { collection, addDoc, getDocs, deleteDoc, doc, query, where } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, query, where, serverTimestamp } from 'firebase/firestore';
 
 interface Notebook {
   id?: string;
@@ -14,8 +14,9 @@ export const createNotebook = async (userId: string, title: string) => {
   const notebookData = {
     title,
     userId,
-    createdAt: new Date(),
+    createdAt: serverTimestamp(), // Usar serverTimestamp para mejor consistencia
   };
+  
   const docRef = await addDoc(collection(db, 'notebooks'), notebookData);
   return { id: docRef.id, ...notebookData };
 };
