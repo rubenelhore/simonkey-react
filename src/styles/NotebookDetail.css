@@ -1,0 +1,205 @@
+/* Estilos para la página de detalle de cuaderno */
+
+.notebook-detail-container {
+  min-height: 100vh;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.notebook-detail-header {
+  display: flex;
+  align-items: center;
+  background-color: var(--card-background);
+  box-shadow: var(--shadow);
+  padding: 0 2rem;
+  height: var(--header-height);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.notebook-detail-header .header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.back-button:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.notebook-detail-main {
+  flex: 1;
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.pdf-upload-section, 
+.concepts-section {
+  background-color: var(--card-background);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+}
+
+.pdf-upload-section h2,
+.concepts-section h2 {
+  margin-bottom: 1.5rem;
+  color: var(--primary-color);
+  font-size: 1.3rem;
+}
+
+.upload-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.file-input {
+  padding: 1rem;
+  border: 2px dashed #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.file-input:hover {
+  border-color: var(--primary-color);
+}
+
+.selected-files {
+  margin: 0.5rem 0;
+}
+
+.selected-files ul {
+  list-style: none;
+  padding-left: 1rem;
+}
+
+.selected-files li {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+.generate-button {
+  align-self: flex-start;
+  padding: 0.75rem 1.5rem;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.generate-button:hover:not(:disabled) {
+  background-color: var(--primary-light);
+  transform: translateY(-2px);
+}
+
+.generate-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.concepts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.concept-group {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 1rem;
+}
+
+.concept-group h3 {
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  color: var(--light-text);
+}
+
+.concept-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+}
+
+.concept-card {
+  background-color: white;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  padding: 1rem;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.concept-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  border-color: var(--primary-color);
+}
+
+.concept-card h4 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color);
+}
+
+.concept-card p {
+  font-size: 0.9rem;
+  color: var(--light-text);
+  line-height: 1.4;
+}
+
+.empty-state {
+  padding: 2rem;
+  text-align: center;
+  color: var(--light-text);
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .notebook-detail-header {
+    padding: 0 1rem;
+  }
+  
+  .notebook-detail-main {
+    padding: 0 1rem;
+  }
+  
+  .concept-cards {
+    grid-template-columns: 1fr;
+  }
+}

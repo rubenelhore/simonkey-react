@@ -1,0 +1,97 @@
+/* Estilos para la página de detalle de concepto */
+
+.concept-detail-container {
+  min-height: 100vh;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.concept-detail-header {
+  display: flex;
+  align-items: center;
+  background-color: var(--card-background);
+  box-shadow: var(--shadow);
+  padding: 0 2rem;
+  height: var(--header-height);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.concept-detail-header .header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.concept-detail-main {
+  flex: 1;
+  max-width: 800px;
+  margin: 3rem auto;
+  padding: 0 2rem;
+}
+
+.concept-card-detail {
+  background-color: var(--card-background);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 2rem;
+}
+
+.concept-term {
+  font-size: 1.8rem;
+  color: var(--primary-color);
+  margin-bottom: 1.5rem;
+  font-weight: 700;
+}
+
+.concept-definition, .concept-source {
+  margin-bottom: 2rem;
+}
+
+.concept-definition h3, .concept-source h3 {
+  font-size: 1.1rem;
+  color: var(--light-text);
+  margin-bottom: 0.5rem;
+}
+
+.concept-definition p {
+  font-size: 1.2rem;
+  line-height: 1.6;
+}
+
+.concept-source cite {
+  font-size: 1rem;
+  font-style: italic;
+  color: var(--light-text);
+}
+
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 50vh;
+  gap: 1rem;
+  text-align: center;
+  padding: 2rem;
+}
+
+.error-container h2 {
+  color: var(--danger-color);
+}
+
+@media (max-width: 768px) {
+  .concept-detail-header {
+    padding: 0 1rem;
+  }
+  
+  .concept-detail-main {
+    padding: 0 1rem;
+  }
+}

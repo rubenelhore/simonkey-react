@@ -11,9 +11,11 @@ import Pricing from './pages/Pricing';
 import SimonkeyCarousel from './components/SimonkeyCarousel';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import Notebooks from './pages/Notebooks'; // Importamos la página de Notebooks
-import { useAuthState } from 'react-firebase-hooks/auth'; // Firebase hook para el estado de autenticación
-import { auth } from './services/firebase'; // Importamos auth desde el archivo firebase.ts modificado
+import Notebooks from './pages/Notebooks';
+import NotebookDetail from './pages/NotebookDetail';
+import ConceptDetail from './pages/ConceptDetail';
+import { useAuthState } from 'react-firebase-hooks/auth';
+import { auth } from './services/firebase';
 
 // Definir el tipo para el usuario
 interface User {
@@ -141,10 +143,18 @@ const App: React.FC = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           
-          {/* Ruta protegida para notebooks */}
+          {/* Rutas protegidas para notebooks y conceptos */}
           <Route
             path="/notebooks"
             element={user.isAuthenticated ? <Notebooks /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/notebooks/:id"
+            element={user.isAuthenticated ? <NotebookDetail /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/notebooks/:notebookId/concepto/:conceptoId/:index"
+            element={user.isAuthenticated ? <ConceptDetail /> : <Navigate to="/login" />}
           />
         </Routes>
       </BrowserRouter>

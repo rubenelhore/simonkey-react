@@ -15,9 +15,9 @@ interface NotebookListProps {
 
 const NotebookList: React.FC<NotebookListProps> = ({ notebooks, onDelete }) => {
   return (
-    <div className="notebook-list">
+    <div className="notebook-grid">
       {notebooks.length === 0 ? (
-        <p>No notebooks yet. Create one to get started!</p>
+        <p className="empty-state">No tienes cuadernos aún. Crea uno para comenzar!</p>
       ) : (
         notebooks.map((notebook) => (
           <NotebookItem
