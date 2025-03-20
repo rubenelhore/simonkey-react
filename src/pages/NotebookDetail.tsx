@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, auth } from '../services/firebase';
 import { doc, getDoc, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
-import { GoogleGenerativeAI, FileData } from '@google/generative-ai';
+import { GoogleGenerativeAI} from '@google/generative-ai';
 import '../styles/NotebookDetail.css';
 
 // Add TypeScript declaration for window.env
@@ -284,7 +284,7 @@ const fileToProcessedFile = async (file: File): Promise<ProcessedFile> => {
 
       <main className="notebook-detail-main">
         <section className="pdf-upload-section">
-          <h2>Subir PDFs para generar conceptos</h2>
+          <h2>Subir material para generar conceptos</h2>
           
           {apiKeyError && (
             <div className="error-message" style={{ color: 'red', padding: '10px', background: '#ffeeee', marginBottom: '15px', borderRadius: '5px' }}>
