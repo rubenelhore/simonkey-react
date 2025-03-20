@@ -2,11 +2,18 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, auth } from '../services/firebase';
 import { doc, getDoc, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI, FileData } from '@google/generative-ai';
 import '../styles/NotebookDetail.css';
 
-// Para el parseo de PDFs
-import * as pdfjs from 'pdfjs-dist';
+// Add TypeScript declaration for window.env
+declare global {
+  interface Window {
+    env?: {
+      VITE_GEMINI_API_KEY?: string;
+      [key: string]: any;
+    };
+  }
+}
 
 interface ConceptDoc {
   id: string;
@@ -22,6 +29,23 @@ interface Concept {
   fuente: string;
 }
 
+// Function to convert Uint8Array to base64 string
+function arrayBufferToBase64(buffer: Uint8Array | ArrayBuffer): string {
+  // If buffer is ArrayBuffer, convert to Uint8Array
+  const uint8Array = buffer instanceof ArrayBuffer 
+    ? new Uint8Array(buffer) 
+    : buffer;
+  
+  // Convert Uint8Array to a string of characters
+  const binaryString = uint8Array.reduce(
+    (data, byte) => data + String.fromCharCode(byte), 
+    ''
+  );
+  
+  // Convert binary string to base64
+  return btoa(binaryString);
+}
+
 const NotebookDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -30,24 +54,45 @@ const NotebookDetail = () => {
   const [conceptosDocs, setConceptosDocs] = useState<ConceptDoc[]>([]);
   const [cargando, setCargando] = useState<boolean>(false);
   const [loadingText, setLoadingText] = useState<string>("Cargando...");
-
+  const [model, setModel] = useState<any>(null);
+  const [apiKeyError, setApiKeyError] = useState<boolean>(false);
+  
   // Initialize Gemini AI
-  const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY;
-  let genAI: any = null;
-  let model: any = null;
+  useEffect(() => {
+    const initializeGemini = () => {
+      try {
+        const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+        if (!apiKey) {
+          console.error("Gemini API key is missing. Check your .env file.");
+          setApiKeyError(true);
+          return null;
+        }
+        
+        const genAI = new GoogleGenerativeAI(apiKey);
+        // Importante: Usamos gemini-1.5-flash-latest para mejor soporte de archivos PDF
+        const geminiModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+        setModel(geminiModel);
+        return geminiModel;
+      } catch (error) {
+        console.error("Error initializing Gemini AI:", error);
+        setApiKeyError(true);
+        return null;
+      }
+    };
 
-  if (GEMINI_API_KEY) {
-    try {
-      genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-      model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    } catch (error) {
-      console.error("Error initializing Gemini AI:", error);
-    }
-  }
+    initializeGemini();
+  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!id) return;
+      
+      // Check authentication
+      if (!auth.currentUser) {
+        console.error("User not authenticated");
+        navigate('/login');
+        return;
+      }
       
       try {
         // Fetch notebook details
@@ -55,7 +100,8 @@ const NotebookDetail = () => {
         const docSnap = await getDoc(docRef);
         
         if (docSnap.exists()) {
-          setCuaderno({ id: docSnap.id, ...docSnap.data() });
+          const data = docSnap.data();
+          setCuaderno({ id: docSnap.id, ...data });
         } else {
           console.error("No such notebook!");
           navigate('/notebooks');
@@ -89,25 +135,19 @@ const NotebookDetail = () => {
     }
   };
 
-  const extractTextFromPDF = async (file: File): Promise<string> => {
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
-      let fullText = '';
-      
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        const pageText = textContent.items.map((item: any) => item.str).join(' ');
-        fullText += pageText + ' ';
-      }
-      
-      return fullText;
-    } catch (error) {
-      console.error("Error extracting text from PDF:", error);
-      return '';
-    }
+  // Definimos una interfaz personalizada para nuestros archivos procesados
+interface ProcessedFile {
+  mimeType: string;
+  data: Uint8Array;
+}
+
+const fileToProcessedFile = async (file: File): Promise<ProcessedFile> => {
+  const bytes = await file.arrayBuffer();
+  return {
+    mimeType: file.type,
+    data: new Uint8Array(bytes)
   };
+};
 
   const generarConceptos = async () => {
     if (!model || !id || !auth.currentUser) {
@@ -121,27 +161,46 @@ const NotebookDetail = () => {
     }
 
     setCargando(true);
-    setLoadingText("Extrayendo texto de PDFs...");
+    setLoadingText("Preparando archivos para análisis...");
 
     try {
-      // Extract text from PDFs
-      const textosPDF = await Promise.all(
-        archivos.map(async (file) => {
-          return await extractTextFromPDF(file);
-        })
-      );
-
+      // Convertir archivos a nuestro formato personalizado de procesamiento
+      const filePromises = archivos.map(file => fileToProcessedFile(file));
+      const fileContents = await Promise.all(filePromises);
+      
       setLoadingText("Generando conceptos con IA...");
 
+      // Crear el prompt para Gemini
       const prompt = `
-        Analiza el siguiente texto y devuelve una lista de conceptos clave con sus definiciones y fuentes en formato JSON.
-        Cada concepto debe tener: "término" (string), "definición" (string), "fuente" (string).
-        La definición debe ser concisa, de 20-30 palabras.
-        Devuelve solo el array JSON, sin texto adicional.
-        Texto: ${textosPDF.join('\n')}
+        Por favor, analiza este PDF y extrae una lista de conceptos clave con sus definiciones.
+        Devuelve el resultado como un array JSON con el siguiente formato:
+        [
+          {
+            "término": "nombre del concepto",
+            "definición": "explicación concisa del concepto (20-30 palabras)",
+            "fuente": "nombre del documento"
+          }
+        ]
+        Extrae al menos 10 conceptos importantes si el documento es lo suficientemente extenso.
+        Asegúrate de que el resultado sea únicamente el array JSON, sin texto adicional.
       `;
 
-      const result = await model.generateContent(prompt);
+      // Crear un contenido con partes para enviar a Gemini
+      const result = await model.generateContent({
+        contents: [{
+          parts: [
+            { text: prompt },
+            ...fileContents.map(file => ({
+              inlineData: {
+                mimeType: file.mimeType,
+                // Convertir el Uint8Array a base64 string como requiere la API de Gemini
+                data: arrayBufferToBase64(file.data)
+              }
+            }))
+          ]
+        }],
+      });
+
       const respuesta = result.response.text();
       
       // Parse the JSON response
@@ -226,6 +285,13 @@ const NotebookDetail = () => {
       <main className="notebook-detail-main">
         <section className="pdf-upload-section">
           <h2>Subir PDFs para generar conceptos</h2>
+          
+          {apiKeyError && (
+            <div className="error-message" style={{ color: 'red', padding: '10px', background: '#ffeeee', marginBottom: '15px', borderRadius: '5px' }}>
+              <p>⚠️ No se pudo inicializar la IA. Verifica la clave API de Gemini en tu archivo .env.</p>
+            </div>
+          )}
+          
           <div className="upload-container">
             <input
               type="file"
@@ -250,7 +316,7 @@ const NotebookDetail = () => {
             </div>
             <button 
               onClick={generarConceptos} 
-              disabled={archivos.length === 0 || cargando}
+              disabled={archivos.length === 0 || cargando || apiKeyError}
               className="generate-button"
             >
               {cargando ? loadingText : 'Generar Conceptos'}
