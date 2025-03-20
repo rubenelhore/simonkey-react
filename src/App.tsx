@@ -1,5 +1,5 @@
 import React, { useEffect, useState, createContext } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import './App.css';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -11,7 +11,9 @@ import Pricing from './pages/Pricing';
 import SimonkeyCarousel from './components/SimonkeyCarousel';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import Notebook from './pages/Notebook'; // Importamos la página de Notebooks
+import { useAuthState } from 'react-firebase-hooks/auth'; // Firebase hook para el estado de autenticación
+import { auth } from './services/firebase'; // Importamos auth desde el archivo firebase.ts modificado
 
 // Definir el tipo para el usuario
 interface User {
@@ -88,13 +90,12 @@ const App: React.FC = () => {
     isAuthenticated: false
   });
   
-  // Estado para controlar si la app está en proceso de verificación de autenticación
-  const [loading, setLoading] = useState(true);
-
+  // Usamos el hook de Firebase para la autenticación
+  const [firebaseUser, firebaseLoading] = useAuthState(auth);
+  
   // Efecto para verificar si hay un usuario en Firebase al cargar la aplicación
   useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    if (!firebaseLoading) {
       if (firebaseUser) {
         // Usuario autenticado
         const userData = {
@@ -111,25 +112,33 @@ const App: React.FC = () => {
         setUser({ isAuthenticated: false });
         localStorage.removeItem('user');
       }
-      setLoading(false);
-    });
+    }
+  }, [firebaseUser, firebaseLoading]);
 
-    // Limpiar la suscripción cuando el componente se desmonte
-    return () => unsubscribe();
-  }, []);
-
-  if (loading) {
+  if (firebaseLoading) {
     return <div>Cargando...</div>; // O un componente de carga más elaborado
   }
 
   return (
     <UserContext.Provider value={{ user, setUser }}>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-      </Routes>
+      <Router>
+        <Routes>
+          {/* Ruta principal: redirige a /notebooks si está autenticado */}
+          <Route 
+            path="/" 
+            element={user.isAuthenticated ? <Navigate to="/notebooks" /> : <HomePage />} 
+          />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/signup" element={<SignupPage />} />
+          
+          {/* Ruta protegida para notebooks */}
+          <Route
+            path="/notebooks"
+            element={user.isAuthenticated ? <Notebook /> : <Navigate to="/login" />}
+          />
+        </Routes>
+      </Router>
     </UserContext.Provider>
   );
 };

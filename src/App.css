@@ -1,4 +1,4 @@
-/* src/App.css */
+/* src/App.css*/
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -56,4 +56,55 @@
   background-color: transparent;
   color: white;
   border-color: white;
+}
+
+/* Notebooks styles */
+.notebooks-page {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.notebook-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.notebook-form input {
+  flex: 1;
+  padding: 8px;
+  font-size: 16px;
+}
+
+.notebook-form button {
+  padding: 8px 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.notebook-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notebook-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+}
+
+.notebook-item button {
+  padding: 5px 10px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  cursor: pointer;
 }
