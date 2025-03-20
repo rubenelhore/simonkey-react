@@ -75,7 +75,7 @@ const Notebooks: React.FC = () => {
           
           <div className={`user-section ${menuOpen ? 'mobile-menu' : ''}`}>
             {userEmail && <p className="user-email hide-on-mobile">{userEmail}</p>}
-            <button className="logout-button" onClick={handleLogout}>
+            <button className="logout-button hide-on-mobile" onClick={handleLogout}>
               <i className="fas fa-sign-out-alt"></i> Cerrar sesión
             </button>
           </div>
