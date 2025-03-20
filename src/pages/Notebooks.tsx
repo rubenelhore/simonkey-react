@@ -1,6 +1,7 @@
 // src/pages/Notebooks.tsx
 import { useState, useEffect } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
+import { useNavigate } from 'react-router-dom'; // Add this import
 import { useNotebooks } from '../hooks/useNotebooks';
 import NotebookList from '../components/NotebookList';
 import NotebookForm from '../components/NotebookForm';
@@ -13,6 +14,7 @@ const Notebooks: React.FC = () => {
   const { notebooks, loading, error } = useNotebooks();
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate(); // Add this hook
 
   useEffect(() => {
     if (user) {
@@ -30,8 +32,11 @@ const Notebooks: React.FC = () => {
 
   const handleLogout = async () => {
     await signOut(auth);
+    // Añadir un pequeño delay antes de navegar
+    setTimeout(() => {
+      navigate('/');
+    }, 100);
   };
-
   const toggleMenu = () => {
     setMenuOpen(prevState => !prevState);
     // Prevenir scroll cuando el menú está abierto

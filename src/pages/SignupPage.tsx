@@ -11,8 +11,10 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, firestore } from '../services/firebase';
+import { useNavigate } from 'react-router-dom';
 
 const SignupPage: React.FC = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState<string>('');
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -137,8 +139,8 @@ const SignupPage: React.FC = () => {
       await createUserProfile(user.uid);
       
       console.log('Registro exitoso');
-      // Aquí puedes redirigir al usuario a la página principal
-      // Por ejemplo: navigate('/dashboard');
+      // Redirigir al usuario a la página de Notebooks
+      navigate('/notebooks');
     } catch (err: any) {
       let errorMessage = 'Error al registrarse';
       if (err.code === 'auth/email-already-in-use') {
@@ -179,8 +181,8 @@ const SignupPage: React.FC = () => {
       }
       
       console.log('Registro con proveedor exitoso');
-      // Redirigir después del registro exitoso
-      // navigate('/dashboard');
+      // Redirigir al usuario a la página de Notebooks
+      navigate('/notebooks');
     } catch (err: any) {
       console.error('Error en registro con proveedor:', err);
       setError('Error al registrarse con proveedor externo');
