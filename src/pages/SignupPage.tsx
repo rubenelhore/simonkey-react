@@ -7,7 +7,6 @@ import {
   createUserWithEmailAndPassword, 
   signInWithPopup, 
   GoogleAuthProvider,
-  OAuthProvider,
   updateProfile 
 } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -156,7 +155,7 @@ const SignupPage: React.FC = () => {
     }
   };
   
-  const handleProviderSignup = async (provider: GoogleAuthProvider | OAuthProvider) => {
+  const handleProviderSignup = async (provider: GoogleAuthProvider) => {
     setIsLoading(true);
     
     try {
@@ -194,7 +193,6 @@ const SignupPage: React.FC = () => {
     const provider = new GoogleAuthProvider();
     handleProviderSignup(provider);
   };
-
   
   return (
     <div className="signup-container">

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, createContext } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import './App.css';
 import Header from './components/Header';
@@ -11,6 +11,25 @@ import Pricing from './pages/Pricing';
 import SimonkeyCarousel from './components/SimonkeyCarousel';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+
+// Definir el tipo para el usuario
+interface User {
+  id?: string;
+  name?: string;
+  email?: string;
+  photoURL?: string;
+  isAuthenticated: boolean;
+}
+
+// Crear el contexto para el usuario
+export const UserContext = createContext<{
+  user: User;
+  setUser: React.Dispatch<React.SetStateAction<User>>;
+}>({
+  user: { isAuthenticated: false },
+  setUser: () => {},
+});
 
 const HomePage: React.FC = () => {
   const location = useLocation();
@@ -25,7 +44,6 @@ const HomePage: React.FC = () => {
     { id: 8, src: '/img/image8.jpg', alt: 'Image 8' },
     { id: 9, src: '/img/image9.jpg', alt: 'Image 9' },
   ];
-
 
   useEffect(() => {
     // Comprobar si hay un hash en la URL o un elemento guardado en localStorage
@@ -65,13 +83,54 @@ const HomePage: React.FC = () => {
 };
 
 const App: React.FC = () => {
+  // Estado para gestionar la información del usuario
+  const [user, setUser] = useState<User>({
+    isAuthenticated: false
+  });
+  
+  // Estado para controlar si la app está en proceso de verificación de autenticación
+  const [loading, setLoading] = useState(true);
+
+  // Efecto para verificar si hay un usuario en Firebase al cargar la aplicación
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        // Usuario autenticado
+        const userData = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email || undefined,
+          name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || undefined,
+          photoURL: firebaseUser.photoURL || undefined,
+          isAuthenticated: true
+        };
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+      } else {
+        // Usuario no autenticado
+        setUser({ isAuthenticated: false });
+        localStorage.removeItem('user');
+      }
+      setLoading(false);
+    });
+
+    // Limpiar la suscripción cuando el componente se desmonte
+    return () => unsubscribe();
+  }, []);
+
+  if (loading) {
+    return <div>Cargando...</div>; // O un componente de carga más elaborado
+  }
+
   return (
-    <Routes>
-      <Route path="/" element={<HomePage />} />
-      <Route path="/pricing" element={<Pricing />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/signup" element={<SignupPage />} />
-    </Routes>
+    <UserContext.Provider value={{ user, setUser }}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+      </Routes>
+    </UserContext.Provider>
   );
 };
 
