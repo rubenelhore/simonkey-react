@@ -73,12 +73,12 @@ const Notebooks: React.FC = () => {
             <span className="notebooks-hamburger-line"></span>
           </button>
           
-          <div className={`user-section ${menuOpen ? 'mobile-menu' : ''}`}>
+            <div className={`user-section ${menuOpen ? 'mobile-menu' : ''}`} style={{ fontFamily: 'Poppins, sans-serif' }}>
             {userEmail && <p className="user-email hide-on-mobile">{userEmail}</p>}
-            <button className="logout-button hide-on-mobile" onClick={handleLogout}>
+            <button className="logout-button hide-on-mobile" onClick={handleLogout} style={{ fontFamily: 'Poppins, sans-serif' }}>
               <i className="fas fa-sign-out-alt"></i> Cerrar sesión
             </button>
-          </div>
+            </div>
         </div>
       </header>
       

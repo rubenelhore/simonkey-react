@@ -65,6 +65,10 @@
 .user-email {
   font-size: 0.9rem;
   color: var(--light-text);
+  align-items: center;
+  text-align: center;
+  display: flex;
+  justify-content: center;
 }
 
 .logout-button {
