@@ -6,7 +6,6 @@ import NotebookList from '../components/NotebookList';
 import NotebookForm from '../components/NotebookForm';
 import { auth } from '../services/firebase';
 import { signOut } from 'firebase/auth';
-import { Timestamp } from 'firebase/firestore';
 import '../styles/Notebooks.css';
 
 const Notebooks: React.FC = () => {
@@ -26,7 +25,7 @@ const Notebooks: React.FC = () => {
   };
 
   const handleDelete = (id: string) => {
-    console.log("Notebook deleted successfully");
+    console.log(`Notebook with id ${id} deleted successfully`);
   };
 
   const handleLogout = async () => {
