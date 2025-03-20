@@ -1,6 +1,6 @@
 // src/services/firebase.ts
 
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore, enableIndexedDbPersistence } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
@@ -15,12 +15,12 @@ const firebaseConfig = {
   appId: "1:235501879490:web:05fea6dae9c63b2a827b5b"
 };
 
-// Inicializar Firebase
-const app = initializeApp(firebaseConfig);
+// Inicializar Firebase solo si no existe una instancia previa
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Inicializar servicios
+// Inicializar servicios - Corregido para evitar duplicación
 const auth = getAuth(app);
-const firestore = getFirestore(app);
+const db = getFirestore(app);
 const storage = getStorage(app);
 
 // Configurar persistencia para autenticación (mantener sesión activa)
@@ -30,22 +30,55 @@ setPersistence(auth, browserLocalPersistence)
   });
 
 // Habilitar persistencia offline para Firestore (opcional)
-// Esto permite que la app funcione sin conexión
-// Solo habilitar en entorno del cliente (browser)
+// Solo habilitar en entorno del cliente (browser) y con manejo de errores adecuado
 if (typeof window !== 'undefined') {
-  enableIndexedDbPersistence(firestore)
-    .catch((error) => {
-      console.error("Error habilitando persistencia Firestore:", error);
-    });
+  try {
+    enableIndexedDbPersistence(db)
+      .catch((error) => {
+        if (error.code === 'failed-precondition') {
+          // Múltiples pestañas abiertas, la persistencia solo puede habilitarse en una pestaña a la vez
+          console.log('La persistencia no se pudo habilitar porque hay múltiples pestañas abiertas');
+        } else if (error.code === 'unimplemented') {
+          // El navegador actual no soporta las características requeridas
+          console.log('Tu navegador no soporta la persistencia offline');
+        } else {
+          console.error("Error habilitando persistencia Firestore:", error);
+        }
+      });
+  } catch (err) {
+    console.error("Error al configurar persistencia:", err);
+  }
 }
 
 // Exportar todo lo que necesitamos
 export { 
   app, 
   auth, 
-  firestore, 
-  storage 
+  db, // Exportamos db como firestore principal
+  storage
 };
+
+// Exportación explícita de Firestore (para mayor claridad)
+export const firestore = db;
+
+// Exportar tipos y funciones de Firestore comúnmente usados
+export {
+  collection,
+  doc,
+  query,
+  where,
+  orderBy,
+  limit,
+  getDocs,
+  getDoc,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  serverTimestamp,
+  Timestamp
+} from 'firebase/firestore';
+
 
 // Funciones de utilidad para trabajar con Firebase
 export const firebaseUtils = {

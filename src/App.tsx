@@ -1,5 +1,5 @@
 import React, { useEffect, useState, createContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import './App.css';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -33,7 +33,14 @@ export const UserContext = createContext<{
   setUser: () => {},
 });
 
+
+// Un componente wrapper que no usa hooks de React Router
 const HomePage: React.FC = () => {
+  return <HomePageContent />;
+};
+
+// Componente que usa los hooks de React Router
+const HomePageContent: React.FC = () => {
   const location = useLocation();
   const images = [
     { id: 1, src: '/img/image1.jpg', alt: 'Image 1' },
@@ -46,6 +53,8 @@ const HomePage: React.FC = () => {
     { id: 8, src: '/img/image8.jpg', alt: 'Image 8' },
     { id: 9, src: '/img/image9.jpg', alt: 'Image 9' },
   ];
+
+  
 
   useEffect(() => {
     // Comprobar si hay un hash en la URL o un elemento guardado en localStorage
@@ -116,12 +125,12 @@ const App: React.FC = () => {
   }, [firebaseUser, firebaseLoading]);
 
   if (firebaseLoading) {
-    return <div>Cargando...</div>; // O un componente de carga más elaborado
+    return <div>Cargando...</div>;
   }
 
   return (
     <UserContext.Provider value={{ user, setUser }}>
-      <Router>
+      <BrowserRouter>
         <Routes>
           {/* Ruta principal: redirige a /notebooks si está autenticado */}
           <Route 
@@ -138,7 +147,7 @@ const App: React.FC = () => {
             element={user.isAuthenticated ? <Notebook /> : <Navigate to="/login" />}
           />
         </Routes>
-      </Router>
+      </BrowserRouter>
     </UserContext.Provider>
   );
 };
