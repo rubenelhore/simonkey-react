@@ -1,16 +1,19 @@
 /* Notebooks.css - Estilos para la página de notebooks */
 
-/* Variables globales */
+/* Variables globales - Usando las variables del index.css global */
 :root {
-  --primary-color: #4a6fa5;
-  --accent-color: #ff6b6b;
-  --background-color: #f9f9f9;
+  --primary-color: var(--primary);
+  --primary-light: var(--primary-light);
+  --accent-color: var(--accent);
+  --background-color: var(--light);
   --card-background: #ffffff;
-  --text-color: #333333;
+  --text-color: var(--dark);
   --light-text: #666666;
   --header-height: 70px;
   --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   --transition: all 0.3s ease;
+  --success-color: var(--success);
+  --danger-color: var(--danger);
 }
 
 /* Contenedor principal */
@@ -20,7 +23,7 @@
   color: var(--text-color);
   display: flex;
   flex-direction: column;
-  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  /* La font-family ya está definida globalmente en body */
 }
 
 /* Header de la página */
@@ -66,8 +69,8 @@
 
 .logout-button {
   background: none;
-  border: 1px solid var(--accent-color);
-  color: var(--accent-color);
+  border: 1px solid var(--danger-color);
+  color: var(--danger-color);
   padding: 0.5rem 1rem;
   border-radius: 4px;
   cursor: pointer;
@@ -79,7 +82,7 @@
 }
 
 .logout-button:hover {
-  background-color: var(--accent-color);
+  background-color: var(--danger-color);
   color: white;
 }
 
@@ -202,7 +205,7 @@ button[type="submit"] {
 }
 
 button[type="submit"]:hover {
-  background-color: #3a5a8c;
+  background-color: var(--primary-light);
 }
 
 /* Para la lista de notebooks */
@@ -265,9 +268,28 @@ button[type="submit"]:hover {
 }
 
 .action-delete {
-  color: var(--accent-color);
+  color: var(--danger-color);
 }
 
 .notebook-card-actions button:hover {
   transform: scale(1.2);
+}
+
+/* Estilos para el logo-title-group */
+.logo-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.logo-title-group h1 {
+  font-size: 1.5rem;
+  margin: 0;
+  display: flex;
 }

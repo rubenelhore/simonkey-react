@@ -26,10 +26,10 @@ const NotebookForm: React.FC<NotebookFormProps> = ({ onCreate }) => {
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        placeholder="Enter notebook title"
+        placeholder="Ingresa el nombre del cuaderno"
         required
       />
-      <button type="submit">Create Notebook</button>
+      <button type="submit">Crear Cuaderno</button>
     </form>
   );
 };

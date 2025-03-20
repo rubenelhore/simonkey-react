@@ -46,7 +46,19 @@ const Notebooks: React.FC = () => {
     <div className="notebooks-container">
       <header className="notebooks-header">
         <div className="header-content">
-          <h1>Simonkey <span className="accent">Notebooks</span></h1>
+          <div className="logo-title-group">
+            <img
+          src="/img/favicon.svg"
+          alt="Logo Simonkey"
+          className="logo-img"
+          width="24"
+          height="24"
+            />
+            <h1>
+              <span style={{ color: 'black' }}>Simon</span>
+              <span style={{ color: '#6147FF' }}>key</span>
+            </h1>
+          </div>
           <div className="user-section">
             {userEmail && <p className="user-email">{userEmail}</p>}
             <button className="logout-button" onClick={handleLogout}>
