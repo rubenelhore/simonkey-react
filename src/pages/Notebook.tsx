@@ -11,6 +11,7 @@ const Notebooks: React.FC = () => {
   const { notebooks, loading } = useNotebooks();
   const [notebookList, setNotebookList] = useState(notebooks);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false); // State for mobile menu
 
   useEffect(() => {
     // Set user email when auth state changes
@@ -33,6 +34,11 @@ const Notebooks: React.FC = () => {
     await signOut(auth);
   };
 
+  // Toggle mobile menu
+  const toggleMenu = () => {
+    setMenuOpen(prevState => !prevState);
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -43,24 +49,32 @@ const Notebooks: React.FC = () => {
   }
 
   return (
-    <div className="notebooks-container">
+    <div className={`notebooks-container ${menuOpen ? 'menu-open' : ''}`}>
       <header className="notebooks-header">
         <div className="header-content">
           <div className="logo-title-group">
             <img
-          src="/img/favicon.svg"
-          alt="Logo Simonkey"
-          className="logo-img"
-          width="24"
-          height="24"
+              src="/img/favicon.svg"
+              alt="Logo Simonkey"
+              className="logo-img"
+              width="24"
+              height="24"
             />
             <h1>
               <span style={{ color: 'black' }}>Simon</span>
               <span style={{ color: '#6147FF' }}>key</span>
             </h1>
           </div>
-          <div className="user-section">
-            {userEmail && <p className="user-email">{userEmail}</p>}
+          
+          {/* Hamburger button for mobile */}
+          <button className="notebooks-hamburger-btn" aria-label="Menú" onClick={toggleMenu}>
+            <span className="notebooks-hamburger-line"></span>
+            <span className="notebooks-hamburger-line"></span>
+            <span className="notebooks-hamburger-line"></span>
+          </button>
+          
+          <div className={`user-section ${menuOpen ? 'mobile-menu' : ''}`}>
+            {userEmail && <p className="user-email hide-on-mobile">{userEmail}</p>}
             <button className="logout-button" onClick={handleLogout}>
               <i className="fas fa-sign-out-alt"></i> Cerrar sesión
             </button>
@@ -69,7 +83,7 @@ const Notebooks: React.FC = () => {
       </header>
       
       <main className="notebooks-main">
-        <div className="create-section">
+        <div className={`create-section ${menuOpen ? 'mobile-menu' : ''}`}>
           <h2>Crear nuevo cuaderno</h2>
           <NotebookForm onCreate={handleCreate} />
         </div>

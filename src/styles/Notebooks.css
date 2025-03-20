@@ -102,6 +102,97 @@
   .notebooks-main {
     grid-template-columns: 1fr;
   }
+
+  .hide-on-mobile {
+    display: none;
+  }
+  
+  /* Hamburger button styles */
+  .notebooks-hamburger-btn {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30px;
+    height: 21px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 20;
+    position: fixed;
+    top: 20px;
+    right: 20px;
+  }
+  
+  .notebooks-hamburger-line {
+    width: 100%;
+    height: 3px;
+    background-color: #666666; /* Changed from #666666 to primary color for better visibility */
+    border-radius: 2px; /* Added to make lines look better */
+    transition: var(--transition);
+    display: block; /* Ensure lines are displayed as block elements */
+  }
+  
+  /* Mobile menu styles */
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .mobile-menu {
+    display: none; /* Oculto por defecto en móvil */
+    flex-direction: column; /* Vertical en móvil */
+    width: 100%;
+    align-items: flex-start;
+    padding-top: 1rem;
+    gap: 0.5rem;
+    background-color: var(--card-background);
+    position: absolute;
+    top: var(--header-height);
+    left: 0;
+    box-shadow: var(--shadow);
+    padding: 1rem;
+  }
+  
+  .menu-open .mobile-menu {
+    display: flex; /* Mostrar cuando el menú está abierto */
+  }
+  
+  .create-section {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  /* Animation for hamburger transform to X */
+  .menu-open .notebooks-hamburger-line:nth-child(1) {
+    transform: translateY(9px) rotate(45deg);
+  }
+  
+  .menu-open .notebooks-hamburger-line:nth-child(2) {
+    opacity: 0;
+  }
+  
+  .menu-open .notebooks-hamburger-line:nth-child(3) {
+    transform: translateY(-9px) rotate(-45deg);
+  }
+  
+  /* Additional mobile navigation styles */
+  .nav-links {
+    flex-direction: column;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  
+  .nav-link {
+    padding: 0.75rem 0;
+    width: 100%;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .user-section {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 /* Sección de creación */
