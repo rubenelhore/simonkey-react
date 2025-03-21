@@ -297,7 +297,7 @@ const fileToProcessedFile = async (file: File): Promise<ProcessedFile> => {
               type="file"
               id="pdf-upload"
               multiple
-              accept=".pdf"
+              accept="*/*"
               onChange={handleFileChange}
               disabled={cargando}
               className="file-input"
