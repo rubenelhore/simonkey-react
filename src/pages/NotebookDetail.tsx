@@ -172,7 +172,7 @@ const fileToProcessedFile = async (file: File): Promise<ProcessedFile> => {
 
       // Crear el prompt para Gemini
       const prompt = `
-        Por favor, analiza este PDF y extrae una lista de conceptos clave con sus definiciones.
+        Por favor, analiza estos archivos y extrae una lista de conceptos clave con sus definiciones.
         Devuelve el resultado como un array JSON con el siguiente formato:
         [
           {
@@ -254,7 +254,7 @@ const fileToProcessedFile = async (file: File): Promise<ProcessedFile> => {
       alert(`¡Se generaron ${conceptosExtraidos.length} conceptos exitosamente!`);
     } catch (error) {
       console.error('Error al generar conceptos:', error);
-      alert('Error al procesar los PDFs o al comunicarse con la IA.');
+      alert('Error al procesar los materiales. Archivos aceptados: pdf, csv, txt');
     }
     
     setCargando(false);
