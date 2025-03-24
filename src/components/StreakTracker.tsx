@@ -51,7 +51,19 @@ const StreakTracker: React.FC = () => {
         const streakDoc = await getDoc(streakRef);
         
         const today = new Date();
-        const dayOfWeek = today.toLocaleDateString('es-ES', { weekday: 'long' }).toLowerCase();
+        // Mapping de día en español a la clave en inglés
+        const dayMapping: { [key: string]: string } = {
+          'lunes': 'monday',
+          'martes': 'tuesday',
+          'miércoles': 'wednesday',
+          'jueves': 'thursday',
+          'viernes': 'friday',
+          'sábado': 'saturday',
+          'domingo': 'sunday'
+        };
+        
+        const dayInSpanish = today.toLocaleDateString('es-ES', { weekday: 'long' }).toLowerCase();
+        const dayOfWeek = dayMapping[dayInSpanish] || 'monday'; // Fallback a lunes si hay error
         
         let currentData: StreakData;
         

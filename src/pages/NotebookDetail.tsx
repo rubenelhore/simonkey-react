@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, auth } from '../services/firebase';
 import { doc, getDoc, collection, addDoc, getDocs, query, where, deleteDoc } from 'firebase/firestore';
 import { GoogleGenerativeAI} from '@google/generative-ai';
-import ToolsMenu from '../components/ToolsMenu'; // Importamos el componente ToolsMenu
+import ToolsMenu from '../components/ToolsMenu';
 import '../styles/NotebookDetail.css';
 
 // Add TypeScript declaration for window.env
@@ -57,6 +57,18 @@ const NotebookDetail = () => {
   const [loadingText, setLoadingText] = useState<string>("Cargando...");
   const [model, setModel] = useState<any>(null);
   const [apiKeyError, setApiKeyError] = useState<boolean>(false);
+  const [nuevoConcepto, setNuevoConcepto] = useState<Concept>({
+    término: '',
+    definición: '',
+    fuente: 'Manual'
+  });
+  
+  // Estado para el modal
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'upload' | 'manual'>('upload');
+  
+  // Referencia para el modal
+  const modalRef = useRef<HTMLDivElement>(null);
   
   // Initialize Gemini AI
   useEffect(() => {
@@ -130,6 +142,44 @@ const NotebookDetail = () => {
     fetchData();
   }, [id, navigate]);
 
+  // Efecto para cerrar el modal al hacer clic fuera de él
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setIsModalOpen(false);
+      }
+    }
+    
+    if (isModalOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isModalOpen]);
+
+  // Cerrar modal al presionar ESC
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setIsModalOpen(false);
+      }
+    }
+    
+    if (isModalOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+    } else {
+      document.removeEventListener('keydown', handleKeyDown);
+    }
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isModalOpen]);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setArchivos(Array.from(e.target.files));
@@ -137,18 +187,18 @@ const NotebookDetail = () => {
   };
 
   // Definimos una interfaz personalizada para nuestros archivos procesados
-interface ProcessedFile {
-  mimeType: string;
-  data: Uint8Array;
-}
+  interface ProcessedFile {
+    mimeType: string;
+    data: Uint8Array;
+  }
 
-const fileToProcessedFile = async (file: File): Promise<ProcessedFile> => {
-  const bytes = await file.arrayBuffer();
-  return {
-    mimeType: file.type,
-    data: new Uint8Array(bytes)
+  const fileToProcessedFile = async (file: File): Promise<ProcessedFile> => {
+    const bytes = await file.arrayBuffer();
+    return {
+      mimeType: file.type,
+      data: new Uint8Array(bytes)
+    };
   };
-};
 
   const generarConceptos = async () => {
     if (!model || !id || !auth.currentUser) {
@@ -252,6 +302,9 @@ const fileToProcessedFile = async (file: File): Promise<ProcessedFile> => {
       const fileInput = document.getElementById('pdf-upload') as HTMLInputElement;
       if (fileInput) fileInput.value = '';
       
+      // Cerrar el modal después de generación exitosa
+      setIsModalOpen(false);
+      
       alert(`¡Se generaron ${conceptosExtraidos.length} conceptos exitosamente!`);
     } catch (error) {
       console.error('Error al generar conceptos:', error);
@@ -299,6 +352,188 @@ const fileToProcessedFile = async (file: File): Promise<ProcessedFile> => {
     }
   };
 
+  // Función para añadir concepto manualmente
+  const agregarConceptoManual = async () => {
+    if (!id || !auth.currentUser) {
+      alert("No se pudo verificar la sesión de usuario");
+      return;
+    }
+
+    if (!nuevoConcepto.término || !nuevoConcepto.definición) {
+      alert("Por favor completa todos los campos obligatorios");
+      return;
+    }
+
+    setCargando(true);
+    setLoadingText("Guardando concepto...");
+
+    try {
+      // Crear un array con el nuevo concepto
+      const conceptosNuevos: Concept[] = [{
+        término: nuevoConcepto.término,
+        definición: nuevoConcepto.definición,
+        fuente: nuevoConcepto.fuente || 'Manual'
+      }];
+
+      // Guardar en Firebase
+      const conceptoDocRef = await addDoc(collection(db, 'conceptos'), {
+        cuadernoId: id,
+        usuarioId: auth.currentUser.uid,
+        conceptos: conceptosNuevos,
+        creadoEn: new Date()
+      });
+
+      // Actualizar el estado local
+      setConceptosDocs([...conceptosDocs, {
+        id: conceptoDocRef.id,
+        cuadernoId: id,
+        usuarioId: auth.currentUser.uid,
+        conceptos: conceptosNuevos,
+        creadoEn: new Date()
+      }]);
+
+      // Limpiar el formulario
+      setNuevoConcepto({
+        término: '',
+        definición: '',
+        fuente: 'Manual'
+      });
+      
+      // Cerrar el modal después de creación exitosa
+      setIsModalOpen(false);
+      
+      alert("Concepto añadido exitosamente");
+    } catch (error) {
+      console.error('Error al guardar concepto manual:', error);
+      alert('Error al guardar el concepto. Por favor intente nuevamente.');
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  // Abrir modal con pestaña específica
+  const openModalWithTab = (tab: 'upload' | 'manual') => {
+    setActiveTab(tab);
+    setIsModalOpen(true);
+  };
+
+  // Componentes del modal
+  const renderModalContent = () => {
+    return (
+      <div className="modal-content" ref={modalRef}>
+        <div className="modal-header">
+          <h2>Añadir nuevos conceptos</h2>
+          <button className="close-modal-button" onClick={() => setIsModalOpen(false)}>
+            <i className="fas fa-times"></i>
+          </button>
+        </div>
+        
+        <div className="modal-tabs">
+          <button 
+            className={`tab-button ${activeTab === 'upload' ? 'active' : ''}`}
+            onClick={() => setActiveTab('upload')}
+          >
+            <i className="fas fa-file-upload"></i> Subir PDF
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'manual' ? 'active' : ''}`}
+            onClick={() => setActiveTab('manual')}
+          >
+            <i className="fas fa-pencil-alt"></i> Añadir manualmente
+          </button>
+        </div>
+        
+        <div className="modal-body">
+          {activeTab === 'upload' ? (
+            <div className="upload-container">
+              {apiKeyError && (
+                <div className="error-message">
+                  <p>⚠️ No se pudo inicializar la IA. Verifica la clave API de Gemini en tu archivo .env.</p>
+                </div>
+              )}
+              
+              <input
+                type="file"
+                id="pdf-upload"
+                multiple
+                accept="*/*"
+                onChange={handleFileChange}
+                disabled={cargando}
+                className="file-input"
+              />
+              <div className="selected-files">
+                {archivos.length > 0 && (
+                  <>
+                    <p><strong>Archivos seleccionados:</strong></p>
+                    <ul>
+                      {archivos.map((file, index) => (
+                        <li key={index}>{file.name}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+              <button 
+                onClick={generarConceptos} 
+                disabled={archivos.length === 0 || cargando || apiKeyError}
+                className="generate-button"
+              >
+                {cargando ? loadingText : 'Generar Conceptos'}
+              </button>
+            </div>
+          ) : (
+            <div className="concept-form">
+              <div className="form-group">
+                <label htmlFor="termino">Término *</label>
+                <input 
+                  type="text" 
+                  id="termino"
+                  value={nuevoConcepto.término}
+                  onChange={(e) => setNuevoConcepto({...nuevoConcepto, término: e.target.value})}
+                  placeholder="Nombre del concepto"
+                  disabled={cargando}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="definicion">Definición *</label>
+                <textarea 
+                  id="definicion"
+                  value={nuevoConcepto.definición}
+                  onChange={(e) => setNuevoConcepto({...nuevoConcepto, definición: e.target.value})}
+                  placeholder="Explica brevemente el concepto"
+                  rows={4}
+                  disabled={cargando}
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="fuente">Fuente</label>
+                <input 
+                  type="text" 
+                  id="fuente"
+                  value={nuevoConcepto.fuente}
+                  onChange={(e) => setNuevoConcepto({...nuevoConcepto, fuente: e.target.value})}
+                  placeholder="Fuente del concepto"
+                  disabled={cargando}
+                />
+              </div>
+              
+              <button 
+                onClick={agregarConceptoManual} 
+                disabled={cargando || !nuevoConcepto.término || !nuevoConcepto.definición}
+                className="add-concept-button"
+              >
+                {cargando && loadingText === "Guardando concepto..." ? loadingText : 'Añadir Concepto'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // Muestra spinner de carga mientras se obtienen los datos
   if (!cuaderno) {
     return (
       <div className="loading-container">
@@ -334,80 +569,77 @@ const fileToProcessedFile = async (file: File): Promise<ProcessedFile> => {
 
       <main className="notebook-detail-main">
         <div className="sidebar-container">
-          <section className="pdf-upload-section">
-            <h2>Subir material para generar conceptos</h2>
-            
-            {apiKeyError && (
-              <div className="error-message" style={{ color: 'red', padding: '10px', background: '#ffeeee', marginBottom: '15px', borderRadius: '5px' }}>
-                <p>⚠️ No se pudo inicializar la IA. Verifica la clave API de Gemini en tu archivo .env.</p>
-              </div>
-            )}
-            
-            <div className="upload-container">
-              <input
-                type="file"
-                id="pdf-upload"
-                multiple
-                accept="*/*"
-                onChange={handleFileChange}
-                disabled={cargando}
-                className="file-input"
-              />
-              <div className="selected-files">
-                {archivos.length > 0 && (
-                  <>
-                    <p><strong>Archivos seleccionados:</strong></p>
-                    <ul>
-                      {archivos.map((file, index) => (
-                        <li key={index}>{file.name}</li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-              </div>
-              <button 
-                onClick={generarConceptos} 
-                disabled={archivos.length === 0 || cargando || apiKeyError}
-                className="generate-button"
-              >
-                {cargando ? loadingText : 'Generar Conceptos'}
-              </button>
-            </div>
-          </section>
-
-          {/* Integramos el componente ToolsMenu aquí */}
+          {/* Barra lateral oculta, las secciones ahora están en el modal */}
           <ToolsMenu notebookId={id} />
         </div>
 
         <section className="concepts-section">
           <h2>Conceptos del Cuaderno</h2>
-          {conceptosDocs.length === 0 ? (
-            <div className="empty-state">
-              <p>Aún no hay conceptos en este cuaderno. Sube un PDF para comenzar.</p>
-            </div>
-          ) : (
-            <div className="concepts-list">
-              {conceptosDocs.map(doc => (
-                <div key={doc.id} className="concept-group">
-                  <h3>Grupo de conceptos</h3>
-                  <div className="concept-cards">
-                    {doc.conceptos.map((concepto, index) => (
-                      <div 
-                        key={index}
-                        className="concept-card"
-                        onClick={() => navigate(`/notebooks/${id}/concepto/${doc.id}/${index}`)}
-                      >
-                        <h4>{concepto.término}</h4>
-                        <p>{concepto.definición.substring(0, 70)}...</p>
-                      </div>
-                    ))}
+          
+          <div className="concepts-list">
+            {conceptosDocs.length === 0 ? (
+              <div className="empty-state">
+                <p>Aún no hay conceptos en este cuaderno.</p>
+                <button 
+                  className="add-first-concept-button"
+                  onClick={() => openModalWithTab('upload')}
+                >
+                  <i className="fas fa-plus"></i> Añadir mi primer concepto
+                </button>
+              </div>
+            ) : (
+              <>
+                {conceptosDocs.map(doc => (
+                  <div key={doc.id} className="concept-group">
+                    <h3>Grupo de conceptos</h3>
+                    <div className="concept-cards">
+                      {doc.conceptos.map((concepto, index) => (
+                        <div 
+                          key={index}
+                          className="concept-card"
+                          onClick={() => navigate(`/notebooks/${id}/concepto/${doc.id}/${index}`)}
+                        >
+                          <h4>{concepto.término}</h4>
+                          <p>{concepto.definición.substring(0, 70)}...</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                
+                {/* Tarjeta para añadir nuevos conceptos */}
+                <div className="add-concept-card-container">
+                  <div 
+                    className="add-concept-card" 
+                    onClick={() => openModalWithTab('upload')}
+                  >
+                    <div className="add-icon">
+                      <i className="fas fa-plus-circle"></i>
+                    </div>
+                    <h4>Añadir nuevos conceptos</h4>
+                    <p>Sube un PDF o añade conceptos manualmente</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              </>
+            )}
+          </div>
         </section>
       </main>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="modal-overlay">
+          {renderModalContent()}
+        </div>
+      )}
+      
+      {/* Botón flotante para añadir conceptos (visible en móvil) */}
+      <button 
+        className="floating-add-button"
+        onClick={() => openModalWithTab('upload')}
+      >
+        <i className="fas fa-plus"></i>
+      </button>
     </div>
   );
 };
