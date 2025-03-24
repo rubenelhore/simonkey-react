@@ -8,6 +8,7 @@ interface Concept {
   término: string;
   definición: string;
   fuente: string;
+  notasPersonales?: string;
 }
 
 const ConceptDetail = () => {
@@ -24,6 +25,11 @@ const ConceptDetail = () => {
   const [deleting, setDeleting] = useState<boolean>(false);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [editedConcept, setEditedConcept] = useState<Concept | null>(null);
+  
+  // Estados para las notas personales
+  const [notasPersonales, setNotasPersonales] = useState<string>('');
+  const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
+  const [isSavingNotes, setIsSavingNotes] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,7 +71,14 @@ const ConceptDetail = () => {
           return;
         }
         
-        setConcepto(conceptos[idx]);
+        const conceptoData = conceptos[idx];
+        setConcepto(conceptoData);
+        
+        // Inicializar notas personales si existen
+        if (conceptoData.notasPersonales) {
+          setNotasPersonales(conceptoData.notasPersonales);
+        }
+        
         setLoading(false);
       } catch (err) {
         console.error("Error fetching concept:", err);
@@ -173,6 +186,66 @@ const ConceptDetail = () => {
     setEditedConcept(null);
   };
 
+  const handleEditNotes = () => {
+    setIsEditingNotes(true);
+  };
+
+  const handleSaveNotes = async () => {
+    if (!notebookId || !conceptoId || !concepto) return;
+    
+    try {
+      setIsSavingNotes(true);
+      
+      // Obtenemos la referencia y datos actuales
+      const conceptoRef = doc(db, 'conceptos', conceptoId);
+      const conceptoSnap = await getDoc(conceptoRef);
+      
+      if (!conceptoSnap.exists()) {
+        throw new Error("El documento de conceptos no existe");
+      }
+      
+      // Obtenemos la lista completa de conceptos
+      const allConceptos = conceptoSnap.data().conceptos;
+      const idx = parseInt(index || '0');
+      
+      // Creamos una nueva lista con el concepto actualizado que incluye las notas
+      const updatedConceptos = [...allConceptos];
+      updatedConceptos[idx] = {
+        ...updatedConceptos[idx],
+        notasPersonales: notasPersonales
+      };
+      
+      // Actualizamos el documento en Firebase
+      await updateDoc(conceptoRef, {
+        conceptos: updatedConceptos
+      });
+      
+      // Actualizamos el estado local
+      setConcepto({
+        ...concepto,
+        notasPersonales: notasPersonales
+      });
+      
+      setIsEditingNotes(false);
+      setIsSavingNotes(false);
+      
+    } catch (error) {
+      console.error("Error al guardar las notas:", error);
+      alert("Ocurrió un error al guardar las notas. Por favor, inténtalo de nuevo.");
+      setIsSavingNotes(false);
+    }
+  };
+
+  const handleCancelNotesEdit = () => {
+    // Restaurar las notas originales
+    if (concepto?.notasPersonales) {
+      setNotasPersonales(concepto.notasPersonales);
+    } else {
+      setNotasPersonales('');
+    }
+    setIsEditingNotes(false);
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -221,92 +294,159 @@ const ConceptDetail = () => {
       </header>
 
       <main className="concept-detail-main">
-        <div className="concept-card-detail">
-          {!isEditing ? (
-            // Modo de visualización
-            <>
-              <h2 className="concept-term">{concepto.término}</h2>
-              <div className="concept-definition">
-                <h3>Definición:</h3>
-                <p>{concepto.definición}</p>
-              </div>
-              <div className="concept-source">
-                <h3>Fuente:</h3>
-                <cite>{concepto.fuente}</cite>
-              </div>
-              
-              <div className="concept-actions">
+        <div className="concept-container">
+          <div className="concept-card-detail">
+            {!isEditing ? (
+              // Modo de visualización
+              <>
+                <h2 className="concept-term">{concepto.término}</h2>
+                <div className="concept-definition">
+                  <h3>Definición:</h3>
+                  <p>{concepto.definición}</p>
+                </div>
+                <div className="concept-source">
+                  <h3>Fuente:</h3>
+                  <cite>{concepto.fuente}</cite>
+                </div>
+                
+                <div className="concept-actions">
+                  <button 
+                    className="edit-concept-button"
+                    onClick={handleEditConcept}
+                  >
+                    <i className="fas fa-edit"></i> Editar concepto
+                  </button>
+                </div>
+              </>
+            ) : (
+              // Modo de edición
+              <>
+                <div className="edit-form">
+                  <div className="form-group">
+                    <label htmlFor="edit-term">Término:</label>
+                    <input
+                      id="edit-term"
+                      type="text"
+                      value={editedConcept?.término || ''}
+                      onChange={(e) => setEditedConcept({
+                        ...editedConcept as Concept,
+                        término: e.target.value
+                      })}
+                      className="edit-input"
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="edit-definition">Definición:</label>
+                    <textarea
+                      id="edit-definition"
+                      value={editedConcept?.definición || ''}
+                      onChange={(e) => setEditedConcept({
+                        ...editedConcept as Concept,
+                        definición: e.target.value
+                      })}
+                      className="edit-textarea"
+                      rows={6}
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label htmlFor="edit-source">Fuente:</label>
+                    <input
+                      id="edit-source"
+                      type="text"
+                      value={editedConcept?.fuente || ''}
+                      onChange={(e) => setEditedConcept({
+                        ...editedConcept as Concept,
+                        fuente: e.target.value
+                      })}
+                      className="edit-input"
+                    />
+                  </div>
+                  
+                  <div className="edit-actions">
+                    <button 
+                      className="save-button"
+                      onClick={handleSaveConcept}
+                    >
+                      <i className="fas fa-save"></i> Guardar cambios
+                    </button>
+                    <button 
+                      className="cancel-button"
+                      onClick={handleCancelEdit}
+                    >
+                      <i className="fas fa-times"></i> Cancelar
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Sección de notas personales */}
+          <div className="personal-notes-card">
+            <div className="personal-notes-header">
+              <h2>
+                <i className="fas fa-sticky-note"></i>
+                Mis notas personales
+              </h2>
+              {!isEditingNotes ? (
                 <button 
-                  className="edit-concept-button"
-                  onClick={handleEditConcept}
+                  className="edit-notes-button"
+                  onClick={handleEditNotes}
                 >
-                  <i className="fas fa-edit"></i> Editar concepto
+                  <i className="fas fa-pen"></i>
+                  {notasPersonales ? 'Editar notas' : 'Añadir notas'}
                 </button>
-              </div>
-            </>
-          ) : (
-            // Modo de edición
-            <>
-              <div className="edit-form">
-                <div className="form-group">
-                  <label htmlFor="edit-term">Término:</label>
-                  <input
-                    id="edit-term"
-                    type="text"
-                    value={editedConcept?.término || ''}
-                    onChange={(e) => setEditedConcept({
-                      ...editedConcept as Concept,
-                      término: e.target.value
-                    })}
-                    className="edit-input"
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="edit-definition">Definición:</label>
-                  <textarea
-                    id="edit-definition"
-                    value={editedConcept?.definición || ''}
-                    onChange={(e) => setEditedConcept({
-                      ...editedConcept as Concept,
-                      definición: e.target.value
-                    })}
-                    className="edit-textarea"
-                    rows={6}
-                  />
-                </div>
-                
-                <div className="form-group">
-                  <label htmlFor="edit-source">Fuente:</label>
-                  <input
-                    id="edit-source"
-                    type="text"
-                    value={editedConcept?.fuente || ''}
-                    onChange={(e) => setEditedConcept({
-                      ...editedConcept as Concept,
-                      fuente: e.target.value
-                    })}
-                    className="edit-input"
-                  />
-                </div>
-                
-                <div className="edit-actions">
+              ) : (
+                <div className="notes-edit-actions">
                   <button 
-                    className="save-button"
-                    onClick={handleSaveConcept}
+                    className="save-notes-button"
+                    onClick={handleSaveNotes}
+                    disabled={isSavingNotes}
                   >
-                    <i className="fas fa-save"></i> Guardar cambios
+                    <i className="fas fa-save"></i>
+                    {isSavingNotes ? 'Guardando...' : 'Guardar'}
                   </button>
                   <button 
-                    className="cancel-button"
-                    onClick={handleCancelEdit}
+                    className="cancel-notes-button"
+                    onClick={handleCancelNotesEdit}
+                    disabled={isSavingNotes}
                   >
-                    <i className="fas fa-times"></i> Cancelar
+                    <i className="fas fa-times"></i>
+                    Cancelar
                   </button>
                 </div>
-              </div>
-            </>
-          )}
+              )}
+            </div>
+
+            <div className="personal-notes-content">
+              {!isEditingNotes ? (
+                // Modo de visualización de notas
+                notasPersonales ? (
+                  <div className="notes-text">
+                    {notasPersonales.split('\n').map((line, i) => (
+                      <p key={i}>{line}</p>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-notes">
+                    <p>Aún no has añadido notas personales a este concepto.</p>
+                    <p>Las notas te ayudan a personalizar tu aprendizaje y contextualizar el concepto a tu manera.</p>
+                  </div>
+                )
+              ) : (
+                // Modo de edición de notas
+                <textarea
+                  className="notes-textarea"
+                  value={notasPersonales}
+                  onChange={(e) => setNotasPersonales(e.target.value)}
+                  placeholder="Escribe tus notas personales aquí. Puedes incluir ejemplos, asociaciones o cualquier cosa que te ayude a entender mejor este concepto."
+                  rows={10}
+                />
+              )}
+            </div>
+          </div>
         </div>
       </main>
     </div>

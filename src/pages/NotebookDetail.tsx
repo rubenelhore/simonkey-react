@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, auth } from '../services/firebase';
-import { doc, getDoc, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
+import { doc, getDoc, collection, addDoc, getDocs, query, where, deleteDoc } from 'firebase/firestore';
 import { GoogleGenerativeAI} from '@google/generative-ai';
 import ToolsMenu from '../components/ToolsMenu'; // Importamos el componente ToolsMenu
 import '../styles/NotebookDetail.css';
@@ -261,6 +261,44 @@ const fileToProcessedFile = async (file: File): Promise<ProcessedFile> => {
     setCargando(false);
   };
 
+  // Función para eliminar el cuaderno y todos sus conceptos relacionados
+  const eliminarCuaderno = async () => {
+    if (!id || !auth.currentUser) return;
+    
+    try {
+      setCargando(true);
+      setLoadingText("Eliminando cuaderno...");
+      
+      // 1. Primero, obtener y eliminar todos los documentos de conceptos asociados
+      const conceptosQuery = query(
+        collection(db, 'conceptos'),
+        where('cuadernoId', '==', id)
+      );
+      
+      const conceptosSnapshot = await getDocs(conceptosQuery);
+      
+      // Eliminar cada documento de conceptos
+      const deletePromises = conceptosSnapshot.docs.map(doc => 
+        deleteDoc(doc.ref)
+      );
+      
+      // Esperar a que se eliminen todos los documentos de conceptos
+      await Promise.all(deletePromises);
+      
+      // 2. Eliminar el documento del cuaderno
+      await deleteDoc(doc(db, 'notebooks', id));
+      
+      // 3. Redirigir al usuario a la página de cuadernos
+      navigate('/notebooks', { replace: true });
+      
+    } catch (error) {
+      console.error("Error al eliminar cuaderno:", error);
+      alert("Ha ocurrido un error al eliminar el cuaderno. Por favor intenta nuevamente.");
+    } finally {
+      setCargando(false);
+    }
+  };
+
   if (!cuaderno) {
     return (
       <div className="loading-container">
@@ -283,14 +321,13 @@ const fileToProcessedFile = async (file: File): Promise<ProcessedFile> => {
           <button 
             onClick={() => {
               if(window.confirm('¿Estás seguro de que deseas eliminar este cuaderno? Esta acción no se puede deshacer.')) {
-                // Aquí iría la lógica para eliminar el cuaderno
-                console.log('Eliminando cuaderno:', id);
-                // navigate('/notebooks');
+                eliminarCuaderno();
               }
             }} 
             className="delete-notebook-button"
+            disabled={cargando}
           >
-            <i className="fas fa-trash-alt"></i> Eliminar cuaderno
+            <i className="fas fa-trash-alt"></i> {cargando && loadingText === "Eliminando cuaderno..." ? loadingText : "Eliminar cuaderno"}
           </button>
         </div>
       </header>
