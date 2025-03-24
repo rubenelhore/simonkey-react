@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { db, auth } from '../services/firebase';
 import { doc, getDoc, collection, addDoc, getDocs, query, where } from 'firebase/firestore';
 import { GoogleGenerativeAI} from '@google/generative-ai';
+import ToolsMenu from '../components/ToolsMenu'; // Importamos el componente ToolsMenu
 import '../styles/NotebookDetail.css';
 
 // Add TypeScript declaration for window.env
@@ -283,46 +284,51 @@ const fileToProcessedFile = async (file: File): Promise<ProcessedFile> => {
       </header>
 
       <main className="notebook-detail-main">
-        <section className="pdf-upload-section">
-          <h2>Subir material para generar conceptos</h2>
-          
-          {apiKeyError && (
-            <div className="error-message" style={{ color: 'red', padding: '10px', background: '#ffeeee', marginBottom: '15px', borderRadius: '5px' }}>
-              <p>⚠️ No se pudo inicializar la IA. Verifica la clave API de Gemini en tu archivo .env.</p>
+        <div className="sidebar-container">
+          <section className="pdf-upload-section">
+            <h2>Subir material para generar conceptos</h2>
+            
+            {apiKeyError && (
+              <div className="error-message" style={{ color: 'red', padding: '10px', background: '#ffeeee', marginBottom: '15px', borderRadius: '5px' }}>
+                <p>⚠️ No se pudo inicializar la IA. Verifica la clave API de Gemini en tu archivo .env.</p>
+              </div>
+            )}
+            
+            <div className="upload-container">
+              <input
+                type="file"
+                id="pdf-upload"
+                multiple
+                accept="*/*"
+                onChange={handleFileChange}
+                disabled={cargando}
+                className="file-input"
+              />
+              <div className="selected-files">
+                {archivos.length > 0 && (
+                  <>
+                    <p><strong>Archivos seleccionados:</strong></p>
+                    <ul>
+                      {archivos.map((file, index) => (
+                        <li key={index}>{file.name}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+              <button 
+                onClick={generarConceptos} 
+                disabled={archivos.length === 0 || cargando || apiKeyError}
+                className="generate-button"
+              >
+                {cargando ? loadingText : 'Generar Conceptos'}
+              </button>
             </div>
-          )}
-          
-          <div className="upload-container">
-            <input
-              type="file"
-              id="pdf-upload"
-              multiple
-              accept="*/*"
-              onChange={handleFileChange}
-              disabled={cargando}
-              className="file-input"
-            />
-            <div className="selected-files">
-              {archivos.length > 0 && (
-                <>
-                  <p><strong>Archivos seleccionados:</strong></p>
-                  <ul>
-                    {archivos.map((file, index) => (
-                      <li key={index}>{file.name}</li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </div>
-            <button 
-              onClick={generarConceptos} 
-              disabled={archivos.length === 0 || cargando || apiKeyError}
-              className="generate-button"
-            >
-              {cargando ? loadingText : 'Generar Conceptos'}
-            </button>
-          </div>
-        </section>
+          </section>
+
+          {/* Integramos el componente ToolsMenu aquí */}
+          <ToolsMenu notebookId={id} />
+        </div>
 
         <section className="concepts-section">
           <h2>Conceptos del Cuaderno</h2>

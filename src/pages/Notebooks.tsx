@@ -8,6 +8,7 @@ import NotebookForm from '../components/NotebookForm';
 import { auth } from '../services/firebase';
 import { signOut } from 'firebase/auth';
 import '../styles/Notebooks.css';
+import ToolsMenu from '../components/ToolsMenu';
 
 const Notebooks: React.FC = () => {
   const [user] = useAuthState(auth);
@@ -99,9 +100,13 @@ const Notebooks: React.FC = () => {
       </header>
       
       <main className="notebooks-main">
-        <div className={`create-section ${menuOpen ? 'mobile-menu' : ''}`}>
-          <h2>Crear nuevo cuaderno</h2>
-          <NotebookForm onCreate={handleCreate} />
+        <div className="left-column">
+          <div className={`create-section ${menuOpen ? 'mobile-menu' : ''}`}>
+            <h2>Crear nuevo cuaderno</h2>
+            <NotebookForm onCreate={handleCreate} />
+          </div>
+          
+          <ToolsMenu />
         </div>
         
         <div className="notebooks-list-section">
