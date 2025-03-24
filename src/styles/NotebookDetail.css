@@ -52,6 +52,29 @@
   color: white;
 }
 
+.delete-notebook-button {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: transparent;
+  border: 1px solid #dc3545;
+  color: #dc3545;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.delete-notebook-button i {
+  margin-right: 0.5rem;
+}
+
+.delete-notebook-button:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
 .notebook-detail-main {
   flex: 1;
   max-width: 1200px;

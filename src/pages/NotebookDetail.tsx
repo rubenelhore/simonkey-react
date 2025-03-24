@@ -280,6 +280,18 @@ const fileToProcessedFile = async (file: File): Promise<ProcessedFile> => {
             </button>
             <h1>{cuaderno.title}</h1>
           </div>
+          <button 
+            onClick={() => {
+              if(window.confirm('¿Estás seguro de que deseas eliminar este cuaderno? Esta acción no se puede deshacer.')) {
+                // Aquí iría la lógica para eliminar el cuaderno
+                console.log('Eliminando cuaderno:', id);
+                // navigate('/notebooks');
+              }
+            }} 
+            className="delete-notebook-button"
+          >
+            <i className="fas fa-trash-alt"></i> Eliminar cuaderno
+          </button>
         </div>
       </header>
 
