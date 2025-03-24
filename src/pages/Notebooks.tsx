@@ -1,21 +1,21 @@
 // src/pages/Notebooks.tsx
 import { useState, useEffect } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { useNavigate } from 'react-router-dom'; // Add this import
+import { useNavigate } from 'react-router-dom';
 import { useNotebooks } from '../hooks/useNotebooks';
 import NotebookList from '../components/NotebookList';
 import NotebookForm from '../components/NotebookForm';
 import { auth } from '../services/firebase';
 import { signOut } from 'firebase/auth';
 import '../styles/Notebooks.css';
-import ToolsMenu from '../components/ToolsMenu';
+import StreakTracker from '../components/StreakTracker';
 
 const Notebooks: React.FC = () => {
   const [user] = useAuthState(auth);
   const { notebooks, loading, error } = useNotebooks();
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const navigate = useNavigate(); // Add this hook
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (user) {
@@ -106,7 +106,8 @@ const Notebooks: React.FC = () => {
             <NotebookForm onCreate={handleCreate} />
           </div>
           
-          <ToolsMenu />
+          {/* Nuevo componente de racha */}
+          <StreakTracker />
         </div>
         
         <div className="notebooks-list-section">
