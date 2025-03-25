@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom'; // Importar Link
 import '../styles/NotebookDetail.css'; // Importamos los estilos directamente del archivo CSS principal
 
 interface ToolsMenuProps {
@@ -43,9 +44,10 @@ const ToolsMenu: React.FC<ToolsMenuProps> = ({ notebookId }) => {
             </div>
             {activeCategory === 'explanation' && (
               <div className="category-items">
-                <a href={notebookId ? `/tools/explain/simple/${notebookId}` : '#'} className="tool-link">1.1 Sencillamente</a>
-                <a href={notebookId ? `/tools/explain/related/${notebookId}` : '#'} className="tool-link">1.2 Relacionado con mis conceptos</a>
-                <a href={notebookId ? `/tools/explain/interests/${notebookId}` : '#'} className="tool-link">1.3 Relacionado con mis intereses</a>
+                {/* Reemplazar <a> por <Link> */}
+                <Link to={notebookId ? `/tools/explain/simple/${notebookId}` : '#'} className="tool-link">1.1 Sencillamente</Link>
+                <Link to={notebookId ? `/tools/explain/related/${notebookId}` : '#'} className="tool-link">1.2 Relacionado con mis conceptos</Link>
+                <Link to={notebookId ? `/tools/explain/interests/${notebookId}` : '#'} className="tool-link">1.3 Relacionado con mis intereses</Link>
               </div>
             )}
           </div>
@@ -61,8 +63,8 @@ const ToolsMenu: React.FC<ToolsMenuProps> = ({ notebookId }) => {
             </div>
             {activeCategory === 'visual' && (
               <div className="category-items">
-                <a href={notebookId ? `/tools/visual/concept-map/${notebookId}` : '#'} className="tool-link">2.1 Mapa Conceptual</a>
-                <a href={notebookId ? `/tools/visual/images/${notebookId}` : '#'} className="tool-link">2.2 Imágenes</a>
+                <Link to={notebookId ? `/tools/visual/concept-map/${notebookId}` : '#'} className="tool-link">2.1 Mapa Conceptual</Link>
+                <Link to={notebookId ? `/tools/visual/images/${notebookId}` : '#'} className="tool-link">2.2 Imágenes</Link>
               </div>
             )}
           </div>
@@ -78,8 +80,8 @@ const ToolsMenu: React.FC<ToolsMenuProps> = ({ notebookId }) => {
             </div>
             {activeCategory === 'audio' && (
               <div className="category-items">
-                <a href={notebookId ? `/tools/audio/podcast/${notebookId}` : '#'} className="tool-link">3.1 Podcast</a>
-                <a href={notebookId ? `/tools/audio/song/${notebookId}` : '#'} className="tool-link">3.2 Canción</a>
+                <Link to={notebookId ? `/tools/audio/podcast/${notebookId}` : '#'} className="tool-link">3.1 Podcast</Link>
+                <Link to={notebookId ? `/tools/audio/song/${notebookId}` : '#'} className="tool-link">3.2 Canción</Link>
               </div>
             )}
           </div>
@@ -95,8 +97,8 @@ const ToolsMenu: React.FC<ToolsMenuProps> = ({ notebookId }) => {
             </div>
             {activeCategory === 'evaluation' && (
               <div className="category-items">
-                <a href={notebookId ? `/tools/evaluation/flashcards/${notebookId}` : '#'} className="tool-link">4.1 Fichas</a>
-                <a href={notebookId ? `/tools/evaluation/quiz/${notebookId}` : '#'} className="tool-link">4.2 Quiz</a>
+                <Link to={notebookId ? `/tools/evaluation/flashcards/${notebookId}` : '#'} className="tool-link">4.1 Fichas</Link>
+                <Link to={notebookId ? `/tools/evaluation/quiz/${notebookId}` : '#'} className="tool-link">4.2 Quiz</Link>
               </div>
             )}
           </div>

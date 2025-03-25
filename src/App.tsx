@@ -14,6 +14,7 @@ import SignupPage from './pages/SignupPage';
 import Notebooks from './pages/Notebooks';
 import NotebookDetail from './pages/NotebookDetail';
 import ConceptDetail from './pages/ConceptDetail';
+import ExplainConceptPage from './pages/ExplainConceptPage';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './services/firebase';
 
@@ -155,6 +156,10 @@ const App: React.FC = () => {
           <Route
             path="/notebooks/:notebookId/concepto/:conceptoId/:index"
             element={user.isAuthenticated ? <ConceptDetail /> : <Navigate to="/login" />}
+          />
+          <Route
+            path="/tools/explain/:type/:notebookId"
+            element={user.isAuthenticated ? <ExplainConceptPage /> : <Navigate to="/login" />}
           />
         </Routes>
       </BrowserRouter>
