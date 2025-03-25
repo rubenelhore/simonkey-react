@@ -3,10 +3,12 @@ import { useParams, Link } from 'react-router-dom';
 import ExplainConcept from '../components/ExplainConcept';
 import '../styles/ToolPage.css';
 
-type ExplainType = 'simple' | 'related' | 'interests';
-
+// Versión actualizada para React Router v6+
 const ExplainConceptPage: React.FC = () => {
-  const { notebookId, type } = useParams<{ notebookId: string; type: ExplainType }>();
+  // Usamos el tipo Record<string, string> que es compatible con React Router v6
+  const params = useParams<Record<string, string>>();
+  const notebookId = params.notebookId;
+  const type = params.type;
   
   const getTitle = () => {
     switch(type) {
