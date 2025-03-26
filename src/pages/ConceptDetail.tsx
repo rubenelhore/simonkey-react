@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { db } from '../services/firebase';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import '../styles/ConceptDetail.css';
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 interface Concept {
   término: string;
@@ -255,13 +256,49 @@ const ConceptDetail = () => {
   // Funciones de navegación entre conceptos
   const navigateToNextConcept = () => {
     if (currentIndex < totalConcepts - 1) {
-      navigate(`/notebooks/${notebookId}/concepto/${conceptoId}/${currentIndex + 1}`);
+      const nextIndex = currentIndex + 1;
+      // En lugar de solo navegar, actualiza también los estados
+      navigate(`/notebooks/${notebookId}/concepto/${conceptoId}/${nextIndex}`);
+      loadConceptAtIndex(nextIndex);
     }
   };
 
   const navigateToPreviousConcept = () => {
     if (currentIndex > 0) {
-      navigate(`/notebooks/${notebookId}/concepto/${conceptoId}/${currentIndex - 1}`);
+      const prevIndex = currentIndex - 1;
+      navigate(`/notebooks/${notebookId}/concepto/${conceptoId}/${prevIndex}`);
+      loadConceptAtIndex(prevIndex);
+    }
+  };
+
+  const loadConceptAtIndex = async (idx: number) => {
+    try {
+      setLoading(true);
+      
+      const conceptoRef = doc(db, 'conceptos', conceptoId as string);
+      const conceptoSnap = await getDoc(conceptoRef);
+      
+      if (conceptoSnap.exists()) {
+        const conceptos = conceptoSnap.data().conceptos;
+        if (idx >= 0 && idx < conceptos.length) {
+          const conceptoData = conceptos[idx];
+          setConcepto(conceptoData);
+          setCurrentIndex(idx);
+          
+          // Actualiza las notas personales
+          setNotasPersonales(conceptoData.notasPersonales || '');
+          
+          // Resetea otros estados relacionados con la edición
+          setIsEditing(false);
+          setIsEditingNotes(false);
+          setEditedConcept(null);
+        }
+      }
+      
+      setLoading(false);
+    } catch (error) {
+      console.error("Error cargando concepto:", error);
+      setLoading(false);
     }
   };
 

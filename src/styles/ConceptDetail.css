@@ -482,14 +482,21 @@
   cursor: pointer;
   box-shadow: var(--shadow);
   transition: all 0.2s ease;
-  color: var(--primary-color);
+  color: var(--text-color);
   font-size: 1.2rem;
+}
+
+.concept-nav-button i {
+  color: var(--primary-color); /* El ícono en azul primario */
+  transition: color 0.2s ease;
 }
 
 .concept-nav-button:hover:not(:disabled) {
   background-color: var(--primary-color);
-  color: white;
-  transform: translateY(-2px);
+}
+
+.concept-nav-button:hover:not(:disabled) i {
+  color: white; /* El ícono cambia a blanco al pasar el mouse */
 }
 
 .concept-nav-button:active:not(:disabled) {
@@ -500,6 +507,10 @@
   opacity: 0.4;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+.concept-nav-button:disabled i {
+  color: var(--light-text);
 }
 
 .concept-pagination {
