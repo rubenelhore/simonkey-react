@@ -1,15 +1,33 @@
-import React from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import ExplainConcept from '../components/ExplainConcept';
 import '../styles/ToolPage.css';
 
-// Versión actualizada para React Router v6+
 const ExplainConceptPage: React.FC = () => {
-  // Usamos el tipo Record<string, string> que es compatible con React Router v6
   const params = useParams<Record<string, string>>();
   const notebookId = params.notebookId;
   const type = params.type;
+  const navigate = useNavigate();
   
+  // Prevenir scroll en el body cuando el overlay está activo
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    
+    const handleEscKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleClose();
+      }
+    };
+    
+    document.addEventListener('keydown', handleEscKey);
+    
+    // Limpiar al desmontar
+    return () => {
+      document.body.style.overflow = 'auto';
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, []);
+
   const getTitle = () => {
     switch(type) {
       case 'simple': return 'Explicar Sencillamente';
@@ -19,22 +37,30 @@ const ExplainConceptPage: React.FC = () => {
     }
   };
   
+  const handleClose = () => {
+    navigate(`/notebooks/${notebookId}`);
+  };
+  
+  // Cerrar también al hacer clic fuera del contenido principal
+  const handleOverlayClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      handleClose();
+    }
+  };
+  
   return (
-    <div className="tool-page-container">
-      <header className="tool-page-header">
-        <div className="header-content">
-          <div className="breadcrumb">
-            <Link to={`/notebooks/${notebookId}`} className="back-button">
-              <i className="fas fa-arrow-left"></i> Volver al cuaderno
-            </Link>
-            <h1>{getTitle()}</h1>
-          </div>
+    <div className="tool-overlay-backdrop" onClick={handleOverlayClick}>
+      <div className="tool-overlay-content">
+        <div className="tool-overlay-header">
+          <h2>{getTitle()}</h2>
+          <button className="close-overlay" onClick={handleClose}>
+            <i className="fas fa-times"></i>
+          </button>
         </div>
-      </header>
-      
-      <main className="tool-page-content">
-        <ExplainConcept notebookId={notebookId} />
-      </main>
+        <div className="tool-overlay-body">
+          <ExplainConcept notebookId={notebookId} />
+        </div>
+      </div>
     </div>
   );
 };
