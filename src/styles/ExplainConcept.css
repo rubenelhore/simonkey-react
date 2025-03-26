@@ -128,6 +128,77 @@
   color: #888;
 }
 
+/* Estilos para la definición del concepto seleccionado */
+.concept-definition {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  margin: 1rem 0;
+  border-left: 4px solid var(--primary-color);
+}
+
+.concept-definition h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: #5c5b5b;
+}
+
+.concept-definition p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #333;
+}
+
+/* Estilos para el botón de guardar en notas */
+.save-to-notes {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.save-notes-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+.save-notes-button:hover:not(:disabled) {
+  background-color: #218838;
+}
+
+.save-notes-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.save-success {
+  color: #28a745;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 @media (max-width: 768px) {
   .explanation-buttons {
     flex-direction: column;

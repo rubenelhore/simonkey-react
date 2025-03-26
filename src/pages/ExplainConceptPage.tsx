@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import ExplainConcept from '../components/ExplainConcept';
 import '../styles/ToolPage.css';
 

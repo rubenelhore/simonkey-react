@@ -30,6 +30,10 @@ const ConceptDetail = () => {
   const [notasPersonales, setNotasPersonales] = useState<string>('');
   const [isEditingNotes, setIsEditingNotes] = useState<boolean>(false);
   const [isSavingNotes, setIsSavingNotes] = useState<boolean>(false);
+  
+  // Navegación entre conceptos
+  const [totalConcepts, setTotalConcepts] = useState<number>(0);
+  const [currentIndex, setCurrentIndex] = useState<number>(0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -73,6 +77,8 @@ const ConceptDetail = () => {
         
         const conceptoData = conceptos[idx];
         setConcepto(conceptoData);
+        setTotalConcepts(conceptos.length);
+        setCurrentIndex(idx);
         
         // Inicializar notas personales si existen
         if (conceptoData.notasPersonales) {
@@ -246,6 +252,19 @@ const ConceptDetail = () => {
     setIsEditingNotes(false);
   };
 
+  // Funciones de navegación entre conceptos
+  const navigateToNextConcept = () => {
+    if (currentIndex < totalConcepts - 1) {
+      navigate(`/notebooks/${notebookId}/concepto/${conceptoId}/${currentIndex + 1}`);
+    }
+  };
+
+  const navigateToPreviousConcept = () => {
+    if (currentIndex > 0) {
+      navigate(`/notebooks/${notebookId}/concepto/${conceptoId}/${currentIndex - 1}`);
+    }
+  };
+
   if (loading) {
     return (
       <div className="loading-container">
@@ -294,6 +313,31 @@ const ConceptDetail = () => {
       </header>
 
       <main className="concept-detail-main">
+        {/* Controles de navegación entre conceptos */}
+        <div className="concept-navigation">
+          <button 
+            onClick={navigateToPreviousConcept}
+            disabled={currentIndex === 0}
+            className="concept-nav-button previous"
+            aria-label="Concepto anterior"
+            title="Concepto anterior"
+          >
+            <i className="fas fa-chevron-left"></i>
+          </button>
+          <div className="concept-pagination">
+            {currentIndex + 1} / {totalConcepts}
+          </div>
+          <button 
+            onClick={navigateToNextConcept}
+            disabled={currentIndex === totalConcepts - 1}
+            className="concept-nav-button next"
+            aria-label="Siguiente concepto"
+            title="Siguiente concepto"
+          >
+            <i className="fas fa-chevron-right"></i>
+          </button>
+        </div>
+        
         <div className="concept-container">
           <div className="concept-card-detail">
             {!isEditing ? (

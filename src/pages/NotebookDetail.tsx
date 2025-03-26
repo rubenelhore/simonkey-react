@@ -4,6 +4,7 @@ import { db, auth } from '../services/firebase';
 import { doc, getDoc, collection, addDoc, getDocs, query, where, deleteDoc } from 'firebase/firestore';
 import { GoogleGenerativeAI} from '@google/generative-ai';
 import ToolsMenu from '../components/ToolsMenu';
+import EvaluationMenu from '../components/EvaluationMenu';
 import '../styles/NotebookDetail.css';
 
 // Add TypeScript declaration for window.env
@@ -569,8 +570,9 @@ const NotebookDetail = () => {
 
       <main className="notebook-detail-main">
         <div className="sidebar-container">
-          {/* Barra lateral oculta, las secciones ahora están en el modal */}
+          {/* Barra lateral con menús */}
           <ToolsMenu notebookId={id} />
+          <EvaluationMenu notebookId={id} />
         </div>
 
         <section className="concepts-section">

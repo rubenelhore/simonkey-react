@@ -460,3 +460,81 @@
     justify-content: center;
   }
 }
+
+/* Estilos para la navegación entre conceptos */
+.concept-navigation {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.concept-nav-button {
+  background-color: var(--card-background);
+  border: none;
+  border-radius: 50%;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: all 0.2s ease;
+  color: var(--primary-color);
+  font-size: 1.2rem;
+}
+
+.concept-nav-button:hover:not(:disabled) {
+  background-color: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.concept-nav-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.concept-nav-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.concept-pagination {
+  background-color: var(--card-background);
+  padding: 0.5rem 1.5rem;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  color: var(--text-color);
+  font-weight: 500;
+  box-shadow: var(--shadow);
+}
+
+@media (max-width: 768px) {
+  .concept-navigation {
+    margin-bottom: 1.5rem;
+  }
+  
+  .concept-nav-button {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+  }
+  
+  .concept-pagination {
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
+  }
+}
+
+/* Para añadir un efecto visual cuando se pasa de página */
+@keyframes fadeEffect {
+  from { opacity: 0.5; }
+  to { opacity: 1; }
+}
+
+.concept-card-detail, .personal-notes-card {
+  animation: fadeEffect 0.3s ease-in;
+}
