@@ -627,3 +627,72 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* Media queries para diseño responsivo */
+@media (max-width: 768px) {
+  .notebook-detail-main {
+    grid-template-columns: 1fr;
+    padding: 0 1rem;
+    margin: 1rem auto;
+  }
+
+  /* Modificamos esta parte para mostrar el sidebar-container */
+  .sidebar-container {
+    display: flex; /* Mantenemos visible la barra lateral */
+    margin-bottom: 1.5rem; /* Añadimos espacio entre la barra y la sección principal */
+  }
+  
+  .tools-menu-section {
+    width: 100%; /* Aseguramos que tome todo el ancho disponible */
+  }
+
+  .concepts-section {
+    padding: 1rem;
+  }
+
+  .concept-cards {
+    grid-template-columns: 1fr;  /* Una columna en móvil */
+  }
+
+  .floating-add-button {
+    display: flex;  /* Mantenemos el botón flotante en móvil */
+  }
+
+  .breadcrumb h1 {
+    font-size: 1.3rem;
+    max-width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .notebook-detail-header {
+    padding: 0 1rem;
+  }
+
+  .modal-content {
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .modal-header h2 {
+    font-size: 1.1rem;
+  }
+
+  .tab-button {
+    padding: 0.75rem 0.5rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Media queries para tablets */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .notebook-detail-main {
+    grid-template-columns: 220px 1fr;
+    padding: 0 1.5rem;
+  }
+
+  .concept-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

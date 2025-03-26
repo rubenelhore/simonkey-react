@@ -79,12 +79,31 @@ const StreakTracker: React.FC = () => {
           currentData.days[dayOfWeek] = true;
           
           // Actualizar racha
-          const lastVisitDate = currentData.lastVisit ? currentData.lastVisit.toDateString() : null;
+          const lastVisitDate = currentData.lastVisit ? currentData.lastVisit : null;
           const todayString = today.toDateString();
           
-          if (lastVisitDate !== todayString) {
-            // Es una visita nueva para hoy
-            currentData.currentStreak += 1;
+          if (lastVisitDate) {
+            // Verificar si la última visita fue hoy mismo
+            if (lastVisitDate.toDateString() === todayString) {
+              // No incrementar racha, ya visitó hoy
+            } 
+            // Verificar si la última visita fue ayer
+            else {
+              const yesterday = new Date(today);
+              yesterday.setDate(today.getDate() - 1);
+              
+              if (lastVisitDate.toDateString() === yesterday.toDateString()) {
+                // La última visita fue ayer, incrementar racha
+                currentData.currentStreak += 1;
+              } else {
+                // Hubo un día o más de por medio, reiniciar racha
+                currentData.currentStreak = 1;
+              }
+              currentData.lastVisit = today;
+            }
+          } else {
+            // Primera visita
+            currentData.currentStreak = 1;
             currentData.lastVisit = today;
           }
         } else {
@@ -105,6 +124,13 @@ const StreakTracker: React.FC = () => {
           currentData.days[dayOfWeek] = true;
         }
         
+        // Antes de guardar los datos, asegúrate de que currentStreak refleje los días marcados
+        let daysWithFire = 0;
+        Object.values(currentData.days).forEach(isActive => {
+          if (isActive) daysWithFire++;
+        });
+        currentData.currentStreak = daysWithFire;
+
         // Guardar los datos actualizados
         await setDoc(streakRef, {
           days: currentData.days,

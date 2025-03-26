@@ -433,7 +433,7 @@ const NotebookDetail = () => {
             className={`tab-button ${activeTab === 'upload' ? 'active' : ''}`}
             onClick={() => setActiveTab('upload')}
           >
-            <i className="fas fa-file-upload"></i> Subir PDF
+            <i className="fas fa-file-upload"></i> Subir materiales
           </button>
           <button 
             className={`tab-button ${activeTab === 'manual' ? 'active' : ''}`}
@@ -617,7 +617,7 @@ const NotebookDetail = () => {
                       <i className="fas fa-plus-circle"></i>
                     </div>
                     <h4>Añadir nuevos conceptos</h4>
-                    <p>Sube un PDF o añade conceptos manualmente</p>
+                    <p>Sube materiales o añade conceptos manualmente</p>
                   </div>
                 </div>
               </>
