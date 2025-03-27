@@ -355,6 +355,7 @@ button[type="submit"]:hover {
   font-size: 1.1rem;
   margin-bottom: 0.5rem;
   color: var(--notebook-color, var(--primary-color));
+  /* Asegúrate de que no haya estilos que sobrescriban este color */
 }
 
 .notebook-card p {

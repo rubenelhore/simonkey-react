@@ -17,7 +17,7 @@ const NotebookItem: React.FC<NotebookItemProps> = ({ id, title, color, onDelete,
   const [isEditing, setIsEditing] = useState(false);
   const [editableTitle, setEditableTitle] = useState(title);
   const [showColorPicker, setShowColorPicker] = useState(false);
-  const [, setNotebookColor] = useState(color || '#6147FF'); // Color predeterminado
+  const [notebookColor, setNotebookColor] = useState(color || '#6147FF'); // Color predeterminado
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -83,7 +83,7 @@ const NotebookItem: React.FC<NotebookItemProps> = ({ id, title, color, onDelete,
             autoFocus
           />
         ) : (
-          <h3>{editableTitle}</h3>
+          <h3 style={{ color: notebookColor }}>{editableTitle}</h3>
         )}
       </div>
       <div className="notebook-card-actions">

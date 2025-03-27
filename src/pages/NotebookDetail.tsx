@@ -143,6 +143,22 @@ const NotebookDetail = () => {
     fetchData();
   }, [id, navigate]);
 
+  // Añadir al inicio del componente, después de cargar los datos del cuaderno
+  useEffect(() => {
+    if (cuaderno && cuaderno.color) {
+      // Actualizar la variable CSS para que afecte a todos los elementos que la usan
+      document.documentElement.style.setProperty('--notebook-color', cuaderno.color);
+    } else {
+      // Restaurar el valor predeterminado si no hay color personalizado
+      document.documentElement.style.setProperty('--notebook-color', 'var(--primary-color)');
+    }
+
+    // Limpiar al desmontar el componente
+    return () => {
+      document.documentElement.style.setProperty('--notebook-color', 'var(--primary-color)');
+    };
+  }, [cuaderno]);
+
   // Efecto para cerrar el modal al hacer clic fuera de él
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
