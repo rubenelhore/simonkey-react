@@ -521,6 +521,8 @@
   color: var(--text-color);
   font-weight: 500;
   box-shadow: var(--shadow);
+  transition: all 0.3s ease; /* Añadir esta transición */
+  animation: fadeEffect 0.5s ease; /* Añadir esta animación */
 }
 
 @media (max-width: 768px) {

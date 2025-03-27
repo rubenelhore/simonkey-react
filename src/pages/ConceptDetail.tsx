@@ -43,11 +43,12 @@ const ConceptDetail = () => {
         setLoading(false);
         return;
       }
-
+  
       try {
         const cuadernoRef = doc(db, 'notebooks', notebookId);
         const conceptoRef = doc(db, 'conceptos', conceptoId);
         
+        // Obtener los datos en paralelo
         const [cuadernoSnap, conceptoSnap] = await Promise.all([
           getDoc(cuadernoRef),
           getDoc(conceptoRef),
@@ -70,6 +71,9 @@ const ConceptDetail = () => {
         const conceptos = conceptoSnap.data().conceptos;
         const idx = parseInt(index);
         
+        // IMPORTANTE: Actualizar el total de conceptos aquí
+        setTotalConcepts(conceptos.length);
+        
         if (idx < 0 || idx >= conceptos.length) {
           setError("Índice de concepto fuera de rango");
           setLoading(false);
@@ -78,7 +82,6 @@ const ConceptDetail = () => {
         
         const conceptoData = conceptos[idx];
         setConcepto(conceptoData);
-        setTotalConcepts(conceptos.length);
         setCurrentIndex(idx);
         
         // Inicializar notas personales si existen
@@ -280,6 +283,10 @@ const ConceptDetail = () => {
       
       if (conceptoSnap.exists()) {
         const conceptos = conceptoSnap.data().conceptos;
+        
+        // IMPORTANTE: Actualizar el total de conceptos aquí
+        setTotalConcepts(conceptos.length);
+        
         if (idx >= 0 && idx < conceptos.length) {
           const conceptoData = conceptos[idx];
           setConcepto(conceptoData);
