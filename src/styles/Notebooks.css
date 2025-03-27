@@ -368,7 +368,7 @@ button[type="submit"]:hover {
   display: flex;
   justify-content: space-between;
   padding: 0.75rem 1rem;
-  background-color: #f8f8f8;
+  background-color: var(--notebook-color);
 }
 
 .notebook-card-actions button {
@@ -380,7 +380,7 @@ button[type="submit"]:hover {
 }
 
 .action-view {
-  color: var(--primary-color);
+  color: white;
 }
 
 .action-delete {
@@ -388,7 +388,11 @@ button[type="submit"]:hover {
 }
 
 .action-color {
-  color: #FFD700; /* Color dorado para el ícono de paleta */
+  color: white; /* Color dorado para el ícono de paleta */
+}
+
+.action-edit {
+  color: white; /* White color for the edit icon */
 }
 
 .notebook-card-actions button:hover {

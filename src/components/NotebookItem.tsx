@@ -86,7 +86,10 @@ const NotebookItem: React.FC<NotebookItemProps> = ({ id, title, color, onDelete,
           <h3 style={{ color: notebookColor }}>{editableTitle}</h3>
         )}
       </div>
-      <div className="notebook-card-actions">
+      <div 
+        className="notebook-card-actions"
+        style={{ backgroundColor: notebookColor }} // Aplica el color directamente aquí
+      >
         <button onClick={handleView} className="action-view" title="Ver cuaderno">
           <i className="fas fa-eye"></i>
         </button>
