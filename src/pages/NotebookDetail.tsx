@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, auth } from '../services/firebase';
-import { doc, getDoc, collection, addDoc, getDocs, query, where, deleteDoc, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where, deleteDoc, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
 import { GoogleGenerativeAI} from '@google/generative-ai';
 import ToolsMenu from '../components/ToolsMenu';
 import EvaluationMenu from '../components/EvaluationMenu';
