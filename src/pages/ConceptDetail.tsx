@@ -346,16 +346,8 @@ const ConceptDetail = () => {
             </button>
             <h1>{cuaderno.title} - Concepto</h1>
           </div>
-          <button 
-            onClick={handleDeleteConcept} 
-            className="delete-concept-button"
-            disabled={deleting}
-          >
-            <i className="fas fa-trash-alt"></i> Eliminar concepto
-          </button>
         </div>
       </header>
-
       <main className="concept-detail-main">
         {/* Controles de navegación entre conceptos */}
         <div className="concept-navigation">
@@ -403,6 +395,14 @@ const ConceptDetail = () => {
                     onClick={handleEditConcept}
                   >
                     <i className="fas fa-edit"></i> Editar concepto
+                  </button>
+                  <button 
+                    style={{ marginLeft: '10px' }}
+                    className="delete-concept-button"
+                    onClick={handleDeleteConcept}
+                    disabled={deleting}
+                  >
+                    <i className="fas fa-trash-alt"></i> Eliminar concepto
                   </button>
                 </div>
               </>

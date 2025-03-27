@@ -9,6 +9,7 @@ import { auth } from '../services/firebase';
 import { signOut } from 'firebase/auth';
 import '../styles/Notebooks.css';
 import StreakTracker from '../components/StreakTracker';
+import { updateNotebook } from '../services/notebookService';
 
 const Notebooks: React.FC = () => {
   const [user] = useAuthState(auth);
@@ -29,6 +30,16 @@ const Notebooks: React.FC = () => {
 
   const handleDelete = (id: string) => {
     console.log(`Notebook with id ${id} deleted successfully`);
+  };
+
+  const handleEdit = async (id: string, newTitle: string) => {
+    try {
+      await updateNotebook(id, newTitle);
+      console.log("Título actualizado en Firestore");
+      // Actualiza el estado local si es necesario
+    } catch (error) {
+      console.error("Error actualizando el título:", error);
+    }
   };
 
   const handleLogout = async () => {
@@ -127,6 +138,7 @@ const Notebooks: React.FC = () => {
                     new Date())
               }))} 
               onDelete={handleDelete} 
+              onEdit={handleEdit} // <-- agrega el callback de edición
             />
           )}
         </div>

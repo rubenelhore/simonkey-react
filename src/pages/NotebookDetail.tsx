@@ -592,17 +592,6 @@ const NotebookDetail = () => {
             </button>
             <h1>{cuaderno.title}</h1>
           </div>
-          <button 
-            onClick={() => {
-              if(window.confirm('¿Estás seguro de que deseas eliminar este cuaderno? Esta acción no se puede deshacer.')) {
-                eliminarCuaderno();
-              }
-            }} 
-            className="delete-notebook-button"
-            disabled={cargando}
-          >
-            <i className="fas fa-trash-alt"></i> {cargando && loadingText === "Eliminando cuaderno..." ? loadingText : "Eliminar cuaderno"}
-          </button>
         </div>
       </header>
 
