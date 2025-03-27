@@ -38,3 +38,17 @@ export const updateNotebook = async (id: string, newTitle: string) => {
   const notebookRef = doc(db, "notebooks", id);
   await updateDoc(notebookRef, { title: newTitle });
 };
+
+// Update notebook color
+export const updateNotebookColor = async (id: string, newColor: string) => {
+  try {
+    const notebookRef = doc(db, 'notebooks', id);
+    await updateDoc(notebookRef, {
+      color: newColor
+    });
+    return true;
+  } catch (error) {
+    console.error('Error al actualizar el color:', error);
+    throw error;
+  }
+};

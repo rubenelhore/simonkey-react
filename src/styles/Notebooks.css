@@ -338,6 +338,7 @@ button[type="submit"]:hover {
   display: flex;
   flex-direction: column;
   border: 1px solid #eee;
+  position: relative;
 }
 
 .notebook-card:hover {
@@ -353,7 +354,7 @@ button[type="submit"]:hover {
 .notebook-card h3 {
   font-size: 1.1rem;
   margin-bottom: 0.5rem;
-  color: var(--primary-color);
+  color: var(--notebook-color, var(--primary-color));
 }
 
 .notebook-card p {
@@ -385,7 +386,43 @@ button[type="submit"]:hover {
   color: var(--danger-color);
 }
 
+.action-color {
+  color: #FFD700; /* Color dorado para el ícono de paleta */
+}
+
 .notebook-card-actions button:hover {
+  transform: scale(1.2);
+}
+
+/* Estilos para el contenedor del selector de colores */
+.color-picker-container {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.color-picker {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.color-option {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.color-option:hover {
   transform: scale(1.2);
 }
 

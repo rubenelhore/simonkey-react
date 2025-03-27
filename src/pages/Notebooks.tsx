@@ -9,7 +9,7 @@ import { auth } from '../services/firebase';
 import { signOut } from 'firebase/auth';
 import '../styles/Notebooks.css';
 import StreakTracker from '../components/StreakTracker';
-import { updateNotebook } from '../services/notebookService';
+import { updateNotebook, updateNotebookColor } from '../services/notebookService';
 
 const Notebooks: React.FC = () => {
   const [user] = useAuthState(auth);
@@ -39,6 +39,16 @@ const Notebooks: React.FC = () => {
       // Actualiza el estado local si es necesario
     } catch (error) {
       console.error("Error actualizando el título:", error);
+    }
+  };
+
+  const handleColorChange = async (id: string, newColor: string) => {
+    try {
+      await updateNotebookColor(id, newColor);
+      // Remove the setNotebooks call - let the useNotebooks hook handle the state update
+      // The hook should re-fetch or update its state when the color changes in Firestore
+    } catch (error) {
+      console.error("Error updating notebook color:", error);
     }
   };
 
@@ -139,6 +149,7 @@ const Notebooks: React.FC = () => {
               }))} 
               onDelete={handleDelete} 
               onEdit={handleEdit} // <-- agrega el callback de edición
+              onColorChange={handleColorChange} // <-- agrega el callback de cambio de color
             />
           )}
         </div>

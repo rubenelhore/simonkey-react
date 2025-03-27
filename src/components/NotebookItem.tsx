@@ -6,15 +6,18 @@ import { useState } from 'react';
 interface NotebookItemProps {
   id: string;
   title: string;
+  color?: string; // Nuevo prop para el color
   onDelete: (id: string) => void;
-  // Se actualiza la firma de onEdit para recibir el nuevo título
   onEdit?: (id: string, newTitle: string) => void;
+  onColorChange?: (id: string, newColor: string) => void; // Nueva función para actualizar el color
 }
 
-const NotebookItem: React.FC<NotebookItemProps> = ({ id, title, onDelete, onEdit }) => {
+const NotebookItem: React.FC<NotebookItemProps> = ({ id, title, color, onDelete, onEdit, onColorChange }) => {
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [editableTitle, setEditableTitle] = useState(title);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [, setNotebookColor] = useState(color || '#6147FF'); // Color predeterminado
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -50,6 +53,19 @@ const NotebookItem: React.FC<NotebookItemProps> = ({ id, title, onDelete, onEdit
     }
   };
 
+  const handleColorClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowColorPicker(!showColorPicker);
+  };
+
+  const handleColorChange = (newColor: string) => {
+    setNotebookColor(newColor);
+    setShowColorPicker(false);
+    if (onColorChange) {
+      onColorChange(id, newColor);
+    }
+  };
+
   return (
     <div className="notebook-card">
       <div 
@@ -74,6 +90,9 @@ const NotebookItem: React.FC<NotebookItemProps> = ({ id, title, onDelete, onEdit
         <button onClick={handleView} className="action-view" title="Ver cuaderno">
           <i className="fas fa-eye"></i>
         </button>
+        <button onClick={handleColorClick} className="action-color" title="Cambiar color">
+          <i className="fas fa-palette"></i>
+        </button>
         <button onClick={handleEditClick} className="action-edit" title="Editar nombre">
           <i className="fas fa-pencil-alt"></i>
         </button>
@@ -81,6 +100,21 @@ const NotebookItem: React.FC<NotebookItemProps> = ({ id, title, onDelete, onEdit
           <i className="fas fa-trash"></i>
         </button>
       </div>
+      {showColorPicker && (
+        <div className="color-picker-container">
+          <div className="color-picker">
+            {['#6147FF', '#FF6B6B', '#4CAF50', '#FFD700', '#FF8C00', '#9C27B0'].map(color => (
+              <button
+                key={color}
+                className="color-option"
+                style={{ backgroundColor: color }}
+                onClick={() => handleColorChange(color)}
+                title={`Seleccionar color ${color}`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

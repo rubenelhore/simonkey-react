@@ -1,23 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth, db } from '../services/firebase';
-import { collection, query, where, onSnapshot, orderBy, Timestamp } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { db, auth } from '../services/firebase';
 
-export interface Notebook {
+// Define la interfaz localmente en vez de importarla
+interface Notebook {
   id: string;
   title: string;
   userId: string;
-  createdAt: Date | Timestamp;
+  createdAt: Date | any;
+  color?: string;
 }
 
 export const useNotebooks = () => {
-  const [notebooks, setNotebooks] = useState<Notebook[]>([]);
+  const [notebooks, setNotebooks] = useState<Notebook[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [user] = useAuthState(auth);
 
   useEffect(() => {
-    // Si no hay usuario, no intentamos cargar cuadernos
     if (!user) {
       setNotebooks([]);
       setLoading(false);
@@ -25,57 +26,34 @@ export const useNotebooks = () => {
     }
 
     setLoading(true);
-    setError(null);
     
-    try {
-      // Query para obtener notebooks del usuario actual
-      const notebooksQuery = query(
-        collection(db, 'notebooks'),
-        where('userId', '==', user.uid),
-        orderBy('createdAt', 'desc')
-      );
-      
-      // Usar onSnapshot para escuchar cambios en tiempo real
-      const unsubscribe = onSnapshot(
-        notebooksQuery,
-        (snapshot) => {
-          try {
-            const notebooksData = snapshot.docs.map(doc => {
-              const data = doc.data();
-              
-              return {
-                id: doc.id,
-                title: data.title,
-                userId: data.userId,
-                createdAt: data.createdAt
-              } as Notebook;
-            });
-            
-            console.log("Fetched notebooks:", notebooksData);
-            setNotebooks(notebooksData);
-            setLoading(false);
-          } catch (err: any) {
-            console.error("Error processing notebooks:", err);
-            setError(err);
-            setLoading(false);
-          }
-        },
-        (err) => {
-          console.error("Error fetching notebooks:", err);
-          setError(err);
-          setLoading(false);
-        }
-      );
-      
-      // Cleanup function
-      return () => unsubscribe();
-    } catch (err: any) {
-      console.error("Error setting up notebooks listener:", err);
-      setError(err);
-      setLoading(false);
-      return () => {}; // Empty cleanup function
-    }
+    const notebooksQuery = query(
+      collection(db, 'notebooks'),
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribe = onSnapshot(
+      notebooksQuery,
+      (snapshot) => {
+        const notebooksList = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          color: doc.data().color || '#6147FF' // Valor por defecto si no existe color
+        })) as Notebook[];
+        
+        setNotebooks(notebooksList);
+        setLoading(false);
+      },
+      (err) => {
+        console.error("Error fetching notebooks:", err);
+        setError(err);
+        setLoading(false);
+      }
+    );
+
+    return () => unsubscribe();
   }, [user]);
-  
+
   return { notebooks, loading, error };
 };
