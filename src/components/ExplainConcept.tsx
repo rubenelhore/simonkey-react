@@ -173,6 +173,15 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
           Concepto: ${concept.term}
           Definición: ${concept.definition}`;
           break;
+        case 'mnemotecnia':
+          prompt = `Crea una técnica mnemotécnica efectiva para recordar el siguiente concepto.
+          Usa alguna de estas técnicas: acrónimos, rimas, asociación de imágenes mentales, método de los lugares o historia narrativa.
+          La mnemotecnia debe ser memorable, creativa y directamente relacionada con el significado del concepto.
+          Explica brevemente cómo aplicar esta mnemotecnia para recordar el concepto.
+          
+          Concepto: ${concept.term}
+          Definición: ${concept.definition}`;
+          break;
         default:
           prompt = `Explica el siguiente concepto brevemente:
           Concepto: ${concept.term}
@@ -231,7 +240,9 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
         ? '--- Explicación sencilla ---' 
         : activeButton === 'related'
           ? '--- Relacionado con tus conceptos ---'
-          : '--- Relacionado con tus intereses ---';
+          : activeButton === 'interests'
+            ? '--- Relacionado con tus intereses ---'
+            : '--- Mnemotecnia ---';
       
       const formattedExplanation = `\n\n${explanationTitle}\n${explanation}`;
       
@@ -331,6 +342,13 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
         >
           <i className="fas fa-heart"></i> Relacionado con mis intereses
         </button>
+        <button 
+          onClick={() => generateExplanation('mnemotecnia')}
+          disabled={isLoading || isSaving || !selectedConcept || apiKeyError}
+          className={activeButton === 'mnemotecnia' ? 'active' : ''}
+        >
+          <i className="fas fa-brain"></i> Mnemotecnia
+        </button>
       </div>
 
       {/* Botón para guardar en notas */}
@@ -373,6 +391,7 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
               {activeButton === 'simple' && 'Explicación sencilla'}
               {activeButton === 'related' && 'Relacionado con tus conceptos'}
               {activeButton === 'interests' && 'Relacionado con tus intereses'}
+              {activeButton === 'mnemotecnia' && 'Técnica mnemotécnica'}
             </h3>
             <p>{explanation}</p>
           </div>
