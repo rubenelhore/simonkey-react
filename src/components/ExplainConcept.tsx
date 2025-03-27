@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { db } from '../services/firebase';
 import { collection, query, where, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import '../styles/ExplainConcept.css';
 
 // Definimos las interfaces para los tipos
@@ -40,11 +41,39 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
   const [activeButton, setActiveButton] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
+  const [model, setModel] = useState<any>(null);
+  const [apiKeyError, setApiKeyError] = useState<boolean>(false);
 
   // Usa el notebookId de props o de parámetros de URL
   const params = useParams<Record<string, string>>();
   const paramNotebookId = params.notebookId;
   const notebookId = propNotebookId || paramNotebookId;
+
+  // Inicializar Gemini AI
+  useEffect(() => {
+    const initializeGemini = () => {
+      try {
+        const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+        if (!apiKey) {
+          console.error("Gemini API key is missing. Check your .env file.");
+          setApiKeyError(true);
+          return null;
+        }
+        
+        const genAI = new GoogleGenerativeAI(apiKey);
+        // Usando gemini-1.5-flash para respuestas rápidas
+        const geminiModel = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+        setModel(geminiModel);
+        return geminiModel;
+      } catch (error) {
+        console.error("Error initializing Gemini AI:", error);
+        setApiKeyError(true);
+        return null;
+      }
+    };
+
+    initializeGemini();
+  }, []);
 
   // Cargar los conceptos cuando el componente se monta
   useEffect(() => {
@@ -92,10 +121,15 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
     fetchConcepts();
   }, [notebookId]);
 
-  // Función para generar explicaciones
+  // Función para generar explicaciones usando Gemini
   const generateExplanation = async (type: string) => {
     if (!selectedConcept) {
       alert('Por favor, selecciona un concepto primero');
+      return;
+    }
+    
+    if (!model) {
+      alert('No se pudo inicializar el modelo de IA. Verifica tu API key.');
       return;
     }
 
@@ -105,43 +139,58 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
     
     const concept = concepts.find(c => c.id === selectedConcept);
     
+    if (!concept) {
+      setIsLoading(false);
+      alert('Concepto no encontrado');
+      return;
+    }
+    
     try {
-      // Aquí iría la llamada a tu API de IA
-      // Ejemplo:
-      // const response = await aiService.explainConcept({
-      //   conceptTerm: concept?.term,
-      //   conceptDefinition: concept?.definition,
-      //   explanationType: type,
-      //   notebookId
-      // });
-      // setExplanation(response.explanation);
-      
-      // Simulación para el ejemplo
-      let simulatedResponse = '';
+      // Crear el prompt según el tipo de explicación
+      let prompt = '';
       
       switch (type) {
         case 'simple':
-          simulatedResponse = `${concept?.term} es, en términos simples, ${concept?.definition.toLowerCase()}. Imagina que ${concept?.term} es como un lego para construir páginas web.`;
+          prompt = `Explica el siguiente concepto de manera sencilla, como si le hablaras a alguien sin conocimiento técnico. 
+          Usa analogías cotidianas. Limita tu respuesta a 3-4 oraciones.
+          
+          Concepto: ${concept.term}
+          Definición: ${concept.definition}`;
           break;
         case 'related':
-          simulatedResponse = `${concept?.term} se relaciona con otros conceptos de tu cuaderno. Por ejemplo, si estás estudiando desarrollo web, ${concept?.term} trabaja junto con HTML y CSS para crear aplicaciones web completas.`;
+          prompt = `Explica cómo el siguiente concepto se relaciona con otros conceptos del mismo campo. 
+          Menciona 2-3 conceptos relacionados y explica brevemente sus conexiones.
+          Limita tu respuesta a 3-4 oraciones.
+          
+          Concepto: ${concept.term}
+          Definición: ${concept.definition}`;
           break;
         case 'interests':
-          simulatedResponse = `Basado en tus intereses, ${concept?.term} puede ser útil cuando quieras ${concept?.term === 'React' ? 'desarrollar aplicaciones web interactivas' : 'crear aplicaciones más robustas y seguras'}.`;
+          prompt = `Explica cómo el siguiente concepto puede ser útil o interesante en aplicaciones prácticas.
+          Menciona 1-2 ejemplos concretos de cómo alguien podría aplicar este concepto en proyectos reales.
+          Limita tu respuesta a 3-4 oraciones.
+          
+          Concepto: ${concept.term}
+          Definición: ${concept.definition}`;
           break;
         default:
-          simulatedResponse = 'No se pudo generar una explicación.';
+          prompt = `Explica el siguiente concepto brevemente:
+          Concepto: ${concept.term}
+          Definición: ${concept.definition}`;
       }
       
-      // Simula retraso de red
-      setTimeout(() => {
-        setExplanation(simulatedResponse);
-        setIsLoading(false);
-      }, 1000);
+      // Llamar a la API de Gemini
+      const result = await model.generateContent({
+        contents: [{ parts: [{ text: prompt }] }],
+      });
+      
+      const respuesta = result.response.text();
+      setExplanation(respuesta);
       
     } catch (error) {
       console.error('Error al generar la explicación:', error);
       setExplanation('Ocurrió un error al generar la explicación. Por favor, intenta de nuevo.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -224,6 +273,12 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
     <div className="explain-concept-container">
       <h2>Explicar concepto</h2>
       
+      {apiKeyError && (
+        <div className="error-message">
+          <p>⚠️ No se pudo inicializar la IA. Verifica la clave API de Gemini en tu archivo .env.</p>
+        </div>
+      )}
+      
       <div className="concept-selector">
         <label htmlFor="concept-select">Selecciona un concepto:</label>
         <select 
@@ -257,21 +312,21 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
       <div className="explanation-buttons">
         <button 
           onClick={() => generateExplanation('simple')}
-          disabled={isLoading || isSaving || !selectedConcept}
+          disabled={isLoading || isSaving || !selectedConcept || apiKeyError}
           className={activeButton === 'simple' ? 'active' : ''}
         >
           <i className="fas fa-child"></i> Sencillamente
         </button>
         <button 
           onClick={() => generateExplanation('related')}
-          disabled={isLoading || isSaving || !selectedConcept}
+          disabled={isLoading || isSaving || !selectedConcept || apiKeyError}
           className={activeButton === 'related' ? 'active' : ''}
         >
           <i className="fas fa-project-diagram"></i> Relacionado con mis conceptos
         </button>
         <button 
           onClick={() => generateExplanation('interests')}
-          disabled={isLoading || isSaving || !selectedConcept}
+          disabled={isLoading || isSaving || !selectedConcept || apiKeyError}
           className={activeButton === 'interests' ? 'active' : ''}
         >
           <i className="fas fa-heart"></i> Relacionado con mis intereses
