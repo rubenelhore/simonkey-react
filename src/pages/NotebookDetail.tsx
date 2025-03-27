@@ -591,26 +591,20 @@ const NotebookDetail = () => {
               </div>
             ) : (
               <>
-                {conceptosDocs.map(doc => (
-                  <div key={doc.id} className="concept-group">
-                    <h3>Grupo de conceptos</h3>
-                    <div className="concept-cards">
-                      {doc.conceptos.map((concepto, index) => (
-                        <div 
-                          key={index}
-                          className="concept-card"
-                          onClick={() => navigate(`/notebooks/${id}/concepto/${doc.id}/${index}`)}
-                        >
-                          <h4>{concepto.término}</h4>
-                          <p>{concepto.definición.substring(0, 70)}...</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                
-                {/* Tarjeta para añadir nuevos conceptos */}
-                <div className="add-concept-card-container">
+                <div className="concept-cards">
+                  {conceptosDocs.flatMap((doc) => 
+                    doc.conceptos.map((concepto, conceptIndex) => (
+                      <div 
+                        key={`${doc.id}-${conceptIndex}`}
+                        className="concept-card"
+                        onClick={() => navigate(`/notebooks/${id}/concepto/${doc.id}/${conceptIndex}`)}
+                      >
+                        <h4>{concepto.término}</h4>
+                      </div>
+                    ))
+                  )}
+                  
+                  {/* Tarjeta para añadir nuevos conceptos */}
                   <div 
                     className="add-concept-card" 
                     onClick={() => openModalWithTab('upload')}
@@ -619,7 +613,6 @@ const NotebookDetail = () => {
                       <i className="fas fa-plus-circle"></i>
                     </div>
                     <h4>Añadir nuevos conceptos</h4>
-                    <p>Sube materiales o añade conceptos manualmente</p>
                   </div>
                 </div>
               </>
