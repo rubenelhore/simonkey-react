@@ -133,7 +133,7 @@
 /* Optimized concept cards grid layout */
 .concept-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 3fr));
+  grid-template-columns: repeat(auto-fill, minmax(100px, 3fr));
   gap: 8px;
   width: 100%;
 }
@@ -142,7 +142,7 @@
 .concept-card {
   background: white;
   border-radius: 8px;
-  padding: 12px;
+  padding: 6px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.25s ease;
   display: flex;
@@ -163,7 +163,7 @@
 }
 
 .concept-card h4 {
-  font-size: 0.95rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: #334155;
   margin: 0;
@@ -232,7 +232,7 @@
 }
 
 .add-concept-card h4 {
-  font-size: 0.95rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: #334155;
   margin: 0;
