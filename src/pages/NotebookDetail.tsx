@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, auth } from '../services/firebase';
-import { doc, getDoc, collection, getDocs, query, where, deleteDoc, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, getDocs, query, where, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
 import { GoogleGenerativeAI} from '@google/generative-ai';
 import ToolsMenu from '../components/ToolsMenu';
 import EvaluationMenu from '../components/EvaluationMenu';
@@ -334,42 +334,6 @@ const NotebookDetail = () => {
   };
 
   // Función para eliminar el cuaderno y todos sus conceptos relacionados
-  const eliminarCuaderno = async () => {
-    if (!id || !auth.currentUser) return;
-    
-    try {
-      setCargando(true);
-      setLoadingText("Eliminando cuaderno...");
-      
-      // 1. Primero, obtener y eliminar todos los documentos de conceptos asociados
-      const conceptosQuery = query(
-        collection(db, 'conceptos'),
-        where('cuadernoId', '==', id)
-      );
-      
-      const conceptosSnapshot = await getDocs(conceptosQuery);
-      
-      // Eliminar cada documento de conceptos
-      const deletePromises = conceptosSnapshot.docs.map(doc => 
-        deleteDoc(doc.ref)
-      );
-      
-      // Esperar a que se eliminen todos los documentos de conceptos
-      await Promise.all(deletePromises);
-      
-      // 2. Eliminar el documento del cuaderno
-      await deleteDoc(doc(db, 'notebooks', id));
-      
-      // 3. Redirigir al usuario a la página de cuadernos
-      navigate('/notebooks', { replace: true });
-      
-    } catch (error) {
-      console.error("Error al eliminar cuaderno:", error);
-      alert("Ha ocurrido un error al eliminar el cuaderno. Por favor intenta nuevamente.");
-    } finally {
-      setCargando(false);
-    }
-  };
 
   // Función para añadir concepto manualmente
   const agregarConceptoManual = async () => {
