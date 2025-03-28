@@ -100,6 +100,21 @@ const ConceptDetail = () => {
     fetchData();
   }, [notebookId, conceptoId, index]);
 
+  useEffect(() => {
+    if (cuaderno && cuaderno.color) {
+      // Set the notebook color CSS variable
+      document.documentElement.style.setProperty('--notebook-color', cuaderno.color);
+    } else {
+      // Reset to default if no color
+      document.documentElement.style.setProperty('--notebook-color', 'var(--primary-color)');
+    }
+
+    // Cleanup function to reset the color when component unmounts
+    return () => {
+      document.documentElement.style.setProperty('--notebook-color', 'var(--primary-color)');
+    };
+  }, [cuaderno]);
+
   const handleDeleteConcept = async () => {
     if (!notebookId || !conceptoId || !concepto) return;
     

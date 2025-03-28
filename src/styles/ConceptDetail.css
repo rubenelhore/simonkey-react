@@ -11,7 +11,8 @@
 .concept-detail-header {
   display: flex;
   align-items: center;
-  background-color: var(--card-background);
+  background-color: var(--notebook-color, var(--primary-color));
+  color: white;
   box-shadow: var(--shadow);
   padding: 0 2rem;
   height: var(--header-height);
