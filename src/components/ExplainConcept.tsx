@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { db } from '../services/firebase';
-import { collection, query, where, getDocs, doc, getDoc, updateDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import '../styles/ExplainConcept.css';
+import { useUser } from '../hooks/useUser'; // Importar el hook useUser
 
 // Definimos las interfaces para los tipos
 interface Concept {
@@ -43,6 +44,8 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
   const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
   const [model, setModel] = useState<any>(null);
   const [apiKeyError, setApiKeyError] = useState<boolean>(false);
+  const [userInterests, setUserInterests] = useState<string[]>([]);
+  const { user } = useUser(); // Obtener el usuario actual
 
   // Usa el notebookId de props o de parámetros de URL
   const params = useParams<Record<string, string>>();
@@ -121,6 +124,79 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
     fetchConcepts();
   }, [notebookId]);
 
+  // Obtener intereses del usuario (versión mejorada)
+  useEffect(() => {
+    const fetchUserInterests = async () => {
+      if (!user?.id) {
+        console.log("No hay ID de usuario disponible");
+        return;
+      }
+      
+      console.log("Configurando listener para intereses de usuario ID:", user.id);
+      
+      // Referencia al documento del usuario - corregida a 'users' en lugar de 'usuarios'
+      const userDocRef = doc(db, 'users', user.id);
+      
+      try {
+        // Primero hacemos una lectura única para tener datos inmediatamente
+        const userDocSnap = await getDoc(userDocRef);
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          console.log("Datos iniciales de usuario:", userData);
+          
+          if (userData.intereses && Array.isArray(userData.intereses)) {
+            console.log("Intereses iniciales:", userData.intereses);
+            const validInterests = userData.intereses.filter(interest => interest && interest.trim() !== '');
+            setUserInterests(validInterests.length > 0 ? validInterests : ['']);
+          }
+        }
+      } catch (error) {
+        console.error("Error obteniendo datos iniciales:", error);
+      }
+      
+      // Configurar un listener en tiempo real para cambios FUTUROS
+      const unsubscribe = onSnapshot(
+        userDocRef, 
+        { includeMetadataChanges: true },
+        (userDocSnap) => {
+          if (userDocSnap.exists() && !userDocSnap.metadata.fromCache) {
+            const userData = userDocSnap.data();
+            console.log("ACTUALIZACIÓN EN TIEMPO REAL - Datos de usuario:", userData);
+            
+            if (userData.intereses && Array.isArray(userData.intereses)) {
+              console.log("ACTUALIZACIÓN EN TIEMPO REAL - Intereses:", userData.intereses);
+              const validInterests = userData.intereses.filter(interest => interest && interest.trim() !== '');
+              setUserInterests(validInterests.length > 0 ? validInterests : ['']);
+            } else {
+              console.log("No se encontraron intereses en la actualización");
+              setUserInterests(['']);
+            }
+          }
+        },
+        (error) => {
+          console.error('Error en el listener de intereses:', error);
+        }
+      );
+      
+      return () => {
+        console.log("Limpiando listener de intereses");
+        unsubscribe();
+      };
+    };
+
+    fetchUserInterests();
+  }, [user?.id]);
+
+  useEffect(() => {
+    console.log("Estructura completa del objeto user:", user);
+    // Resto del código...
+  }, [user]);
+
+  // Agregar esto antes del return para depuración
+  useEffect(() => {
+    console.log("ESTADO ACTUAL - userInterests:", userInterests);
+  }, [userInterests]);
+
   // Función para generar explicaciones usando Gemini
   const generateExplanation = async (type: string) => {
     if (!selectedConcept) {
@@ -166,18 +242,52 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
           Definición: ${concept.definition}`;
           break;
         case 'interests':
-          prompt = `Explica cómo el siguiente concepto puede ser útil o interesante en aplicaciones prácticas.
-          Menciona 1-2 ejemplos concretos de cómo alguien podría aplicar este concepto en proyectos reales.
-          Limita tu respuesta a 3-4 oraciones.
+          // Verificamos si hay intereses disponibles y filtramos los vacíos
+          const filteredInterests = userInterests.filter(interest => interest.trim() !== '');
           
-          Concepto: ${concept.term}
-          Definición: ${concept.definition}`;
+          if (filteredInterests.length > 0) {
+            console.log("Usando intereses para el prompt:", filteredInterests.join(', '));
+            prompt = `TAREA: Relacionar un concepto académico con los intereses personales de un estudiante.
+            
+            INTERESES DEL ESTUDIANTE: ${filteredInterests.join(', ')}.
+            
+            CONCEPTO A EXPLICAR: "${concept.term}"
+            DEFINICIÓN: "${concept.definition}"
+            
+            INSTRUCCIONES:
+            1. Explica de manera clara cómo este concepto académico se relaciona directamente con los intereses listados del estudiante.
+            2. Proporciona 1-2 ejemplos específicos de cómo este concepto podría aplicarse o encontrarse en esos intereses.
+            3. Tu respuesta debe ser breve (3-4 oraciones), concreta y dirigida al estudiante.
+            4. NO menciones que eres un modelo de lenguaje ni uses metareferencias sobre tu naturaleza.`;
+          } else {
+            setExplanation('Para personalizar las explicaciones, añade tus intereses en la sección de "Personalización" accesible desde la página de cuadernos.');
+            setIsLoading(false);
+            return;
+          }
           break;
         case 'mnemotecnia':
-          prompt = `Crea una técnica mnemotécnica efectiva para recordar el siguiente concepto.
-          Usa alguna de estas técnicas: acrónimos, rimas, asociación de imágenes mentales, método de los lugares o historia narrativa.
-          La mnemotecnia debe ser memorable, creativa y directamente relacionada con el significado del concepto.
-          Explica brevemente cómo aplicar esta mnemotecnia para recordar el concepto.
+          prompt = `Crea una técnica mnemotécnica sencilla y práctica para recordar el siguiente concepto.
+  
+          TÉCNICA MNEMOTÉCNICA: [TÍTULO CORTO Y CLARO]
+          
+          Utiliza UNA de estas técnicas (elige la más adecuada para este concepto específico):
+          - Acrónimo simple (máximo 5 letras)
+          - Asociación visual concreta (una sola imagen potente)
+          - Analogía cotidiana (comparación con algo familiar)
+          - Historia mínima (máximo 3 elementos)
+          - Rima breve y pegadiza
+          
+          Estructura tu respuesta así:
+          Título de la mnemotecnia (en mayúsculas) seguida de ":"
+          Descripción en 2-4 líneas máximo
+          
+          La mnemotecnia debe ser:
+          - Memorable al primer contacto
+          - Visualmente clara
+          - Directamente relacionada con el concepto
+          - Fácil de recordar sin esfuerzo
+
+          PROHIBIDO usar: "*" ni siquiera para poner en negritas.
           
           Concepto: ${concept.term}
           Definición: ${concept.definition}`;
