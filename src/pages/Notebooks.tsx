@@ -15,7 +15,7 @@ import { updateNotebook, updateNotebookColor } from '../services/notebookService
 const Notebooks: React.FC = () => {
   const [user] = useAuthState(auth);
   const { notebooks, loading, error } = useNotebooks();
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [, setUserEmail] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -245,6 +245,13 @@ const Notebooks: React.FC = () => {
             </h1>
           </div>
           
+          {/* Espacio Personal Header */}
+          <div className="personal-space-header">
+            <h2 className="user-greeting">
+              Espacio Personal de <span style={{ color: '#6147FF' }}>{userData.nombre || "Usuario"}</span>
+            </h2>
+          </div>
+          
           <button className="notebooks-hamburger-btn" aria-label="Menú" onClick={toggleMenu}>
             <span className="notebooks-hamburger-line"></span>
             <span className="notebooks-hamburger-line"></span>
@@ -252,10 +259,8 @@ const Notebooks: React.FC = () => {
           </button>
         </div>
         
-        {/* Menú desplegable con botón de personalización añadido */}
         <div className={`mobile-menu ${menuOpen ? 'show-menu' : ''}`}>
           <div className="user-section">
-            {userEmail && <p className="user-email">{userEmail}</p>}
             <button className="personalization-button" onClick={handleOpenPersonalization}>
               <i className="fas fa-user-cog"></i> Personalización
             </button>
@@ -294,8 +299,8 @@ const Notebooks: React.FC = () => {
                     new Date())
               }))} 
               onDelete={handleDelete} 
-              onEdit={handleEdit} // <-- agrega el callback de edición
-              onColorChange={handleColorChange} // <-- agrega el callback de cambio de color
+              onEdit={handleEdit}
+              onColorChange={handleColorChange}
             />
           )}
         </div>

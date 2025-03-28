@@ -44,6 +44,25 @@
   justify-content: space-between;
   align-items: center;
   height: 100%;
+  width: 100%;
+}
+
+.personal-space-header {
+  flex-grow: 1;
+  text-align: center;
+  margin: 0 20px;
+}
+
+.user-greeting {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .notebooks-header h1 {
@@ -151,6 +170,20 @@
     padding: 0.75rem 0;
     width: 100%;
     border-bottom: 1px solid #eee;
+  }
+
+  .personal-space-header {
+    margin: 0 10px;
+  }
+  
+  .user-greeting {
+    font-size: 1.2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .personal-space-header {
+    display: none; /* Hide on very small screens */
   }
 }
 
@@ -567,12 +600,13 @@ button[type="submit"]:hover {
   align-items: center;
   padding: 16px 20px;
   background-color: #6147FF;
-  color: white;
+  color: white !important;
   border-bottom: 1px solid #eee;
 }
 
 .modal-header h2 {
   margin: 0;
+  color: white !important;
   font-size: 20px;
   font-weight: 600;
   font-family: 'Poppins', sans-serif;

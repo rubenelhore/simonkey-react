@@ -19,11 +19,13 @@
 }
 
 .notebook-detail-header {
+  background-color: var(--notebook-color);
+  color: white;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
-  background-color: var(--card-background);
   box-shadow: var(--shadow);
-  padding: 0 2rem;
   height: var(--header-height);
   position: sticky;
   top: 0;
@@ -49,21 +51,23 @@
   gap: 1rem;
 }
 
+.breadcrumb h1 {
+  color: white !important;
+}
+
 .back-button {
-  display: flex;
-  align-items: center;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white !important;
+  border: none;
   padding: 0.5rem 1rem;
-  background-color: transparent;
-  border: 1px solid var(--primary-color);
-  color: var(--primary-color);
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  margin-right: 1rem;
+  transition: background-color 0.2s;
 }
 
 .back-button:hover {
-  background-color: var(--primary-color);
-  color: white;
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .delete-notebook-button {
