@@ -6,6 +6,7 @@ import { GoogleGenerativeAI} from '@google/generative-ai';
 import ToolsMenu from '../components/ToolsMenu';
 import EvaluationMenu from '../components/EvaluationMenu';
 import '../styles/NotebookDetail.css';
+import ReactDOM from 'react-dom';
 
 // Add TypeScript declaration for window.env
 declare global {
@@ -159,26 +160,7 @@ const NotebookDetail = () => {
     };
   }, [cuaderno]);
 
-  // Efecto para cerrar el modal al hacer clic fuera de él
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
-        setIsModalOpen(false);
-      }
-    }
-    
-    if (isModalOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    } else {
-      document.removeEventListener('mousedown', handleClickOutside);
-    }
-    
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isModalOpen]);
-
-  // Cerrar modal al presionar ESC
+  // Efecto para manejar la tecla ESC
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -629,10 +611,15 @@ const NotebookDetail = () => {
       </main>
 
       {/* Modal */}
-      {isModalOpen && (
-        <div className="modal-overlay">
+      {isModalOpen && ReactDOM.createPortal(
+        <div className="modal-overlay" onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setIsModalOpen(false);
+          }
+        }}>
           {renderModalContent()}
-        </div>
+        </div>,
+        document.body
       )}
       
       {/* Botón flotante para añadir conceptos (visible en móvil) */}
