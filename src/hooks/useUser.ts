@@ -6,7 +6,7 @@ import {
   createUserWithEmailAndPassword, 
   signOut,
   GoogleAuthProvider,
-  signInWithRedirect
+  signInWithPopup
 } from 'firebase/auth';
 
 export const useUser = () => {
@@ -41,18 +41,28 @@ export const loginWithEmail = async (email: string, password: string, setUser: a
   }
 };
 
-export const loginWithGoogle = async () => {
+export const loginWithGoogle = async (setUser: any) => {
   try {
     const auth = getAuth();
     const provider = new GoogleAuthProvider();
     
-    // Usar redirección en lugar de popup
-    await signInWithRedirect(auth, provider);
+    // Usar popup en lugar de redirección
+    const result = await signInWithPopup(auth, provider);
+    const user = result.user;
     
-    // No se necesita más código aquí, ya que la redirección
-    // llevará al usuario fuera de la página actual
+    // Guardar información del usuario después de autenticación exitosa
+    const userData = {
+      id: user.uid,
+      email: user.email || '',
+      name: user.displayName || user.email?.split('@')[0] || '',
+      photoURL: user.photoURL || undefined,
+      isAuthenticated: true
+    };
     
-    return { success: true };
+    localStorage.setItem('user', JSON.stringify(userData));
+    setUser(userData);
+    
+    return { success: true, user: userData };
   } catch (error: any) {
     console.error('Error signing in with Google:', error);
     return { success: false, error: error.message };

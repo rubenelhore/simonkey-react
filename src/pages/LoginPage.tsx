@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import './LoginPage.css';
-// Importa la imagen de la mascota
 import simonLogo from '/img/favicon.svg';
-// Importaciones de Firebase
+// Importar todas las funciones de Firebase desde un solo lugar
 import { 
   signInWithEmailAndPassword, 
   GoogleAuthProvider,
   onAuthStateChanged,
-  signInWithRedirect
+  signInWithPopup // Añadir aquí, no como importación separada
 } from 'firebase/auth';
-import { auth } from '../services/firebase'; // Corregida la ruta del servicio
+import { auth } from '../services/firebase';
 import { useNavigate } from 'react-router-dom';
 
 const LoginPage: React.FC = () => {     
@@ -21,10 +20,12 @@ const LoginPage: React.FC = () => {
   
   // Check if user is already logged in
   useEffect(() => {
+    console.log("Verificando autenticación en LoginPage");
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
         // User is signed in, redirect to notebooks
-        navigate('/notebooks');
+        console.log("Usuario ya autenticado, redirigiendo a notebooks");
+        navigate('/notebooks', { replace: true });
       }
     });
     
@@ -55,7 +56,8 @@ const LoginPage: React.FC = () => {
       // Usar Firebase para el inicio de sesión
       await signInWithEmailAndPassword(auth, email, password);
       console.log('Inicio de sesión exitoso');
-      navigate('/notebooks');
+      // Usar replace: true para evitar problemas con navegación anterior
+      navigate('/notebooks', { replace: true });
     } catch (err: any) {
       // Manejar errores específicos de Firebase
       let errorMessage = 'Error al iniciar sesión';
@@ -76,7 +78,6 @@ const LoginPage: React.FC = () => {
     
     try {
       const provider = new GoogleAuthProvider();
-      // Add additional scopes if needed
       provider.addScope('profile');
       provider.addScope('email');
       
@@ -86,11 +87,25 @@ const LoginPage: React.FC = () => {
         ...(email ? { login_hint: email } : {})
       });
       
-      // Usar signInWithRedirect en lugar de signInWithPopup
-      await signInWithRedirect(auth, provider);
-      // No necesitas navegar aquí, la redirección se encargará de ello
-      // El manejador en App.tsx procesará el resultado cuando vuelva
+      // Usar signInWithPopup para autenticación directa sin redirección
+      const result = await signInWithPopup(auth, provider);
       
+      console.log("Autenticación con Google exitosa:", result.user.uid);
+      
+      // Guardar información básica del usuario
+      if (result.user) {
+        const userData = {
+          id: result.user.uid,
+          email: result.user.email || '',
+          name: result.user.displayName || '',
+          isAuthenticated: true
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // Navegar a notebooks después de autenticación exitosa
+        // Usar replace: true para evitar problemas con navegación anterior
+        navigate('/notebooks', { replace: true });
+      }
     } catch (err: any) {
       console.error('Error en inicio de sesión con Google:', err);
       

@@ -17,8 +17,6 @@ import ConceptDetail from './pages/ConceptDetail';
 import ExplainConceptPage from './pages/ExplainConceptPage';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './services/firebase';
-import { getRedirectResult } from 'firebase/auth';
-import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 // Definir el tipo para el usuario
 interface User {
@@ -121,6 +119,7 @@ const AppContent: React.FC = () => {
     if (!firebaseLoading) {
       if (firebaseUser) {
         // Usuario autenticado
+        console.log("Usuario autenticado detectado:", firebaseUser.uid);
         const userData = {
           id: firebaseUser.uid,
           email: firebaseUser.email || undefined,
@@ -130,54 +129,19 @@ const AppContent: React.FC = () => {
         };
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
+        
+        // Comprobamos si estamos en la página de login y redirigimos
+        if (window.location.pathname === '/login' || window.location.pathname === '/signup') {
+          console.log("Redirigiendo a notebooks desde App.tsx");
+          navigate('/notebooks', { replace: true });
+        }
       } else {
         // Usuario no autenticado
         setUser({ isAuthenticated: false });
         localStorage.removeItem('user');
       }
     }
-  }, [firebaseUser, firebaseLoading]);
-
-  useEffect(() => {
-    const handleRedirectResult = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result && result.user) {
-          // Verificar si es un usuario nuevo
-          const isNewUser = result.operationType === 'signIn';
-          
-          // Si es nuevo usuario, crear su perfil en Firestore
-          if (isNewUser && result.user.email) {
-            const db = getFirestore();
-            await setDoc(doc(db, 'users', result.user.uid), {
-              email: result.user.email,
-              username: result.user.displayName || result.user.email.split('@')[0],
-              birthdate: null,
-              createdAt: serverTimestamp(),
-              subscription: 'free',
-              notebookCount: 0
-            });
-          }
-          
-          const userData = {
-            id: result.user.uid,
-            email: result.user.email || undefined,
-            name: result.user.displayName || result.user.email?.split('@')[0],
-            photoURL: result.user.photoURL || undefined,
-            isAuthenticated: true
-          };
-          
-          localStorage.setItem('user', JSON.stringify(userData));
-          setUser(userData);
-          navigate('/notebooks');
-        }
-      } catch (error) {
-        console.error("Error handling redirect result", error);
-      }
-    };
-    
-    handleRedirectResult();
-  }, [navigate]);
+  }, [firebaseUser, firebaseLoading, navigate]);
 
   if (firebaseLoading) {
     return <div>Cargando...</div>;
@@ -189,7 +153,7 @@ const AppContent: React.FC = () => {
         {/* Ruta principal: redirige a /notebooks si está autenticado */}
         <Route 
           path="/" 
-          element={user.isAuthenticated ? <Navigate to="/notebooks" /> : <HomePage />} 
+          element={user.isAuthenticated ? <Navigate to="/notebooks" replace /> : <HomePage />} 
         />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/login" element={<LoginPage />} />
@@ -198,19 +162,19 @@ const AppContent: React.FC = () => {
         {/* Rutas protegidas para notebooks y conceptos */}
         <Route
           path="/notebooks"
-          element={user.isAuthenticated ? <Notebooks /> : <Navigate to="/login" />}
+          element={user.isAuthenticated ? <Notebooks /> : <Navigate to="/login" replace />}
         />
         <Route
           path="/notebooks/:id"
-          element={user.isAuthenticated ? <NotebookDetail /> : <Navigate to="/login" />}
+          element={user.isAuthenticated ? <NotebookDetail /> : <Navigate to="/login" replace />}
         />
         <Route
           path="/notebooks/:notebookId/concepto/:conceptoId/:index"
-          element={user.isAuthenticated ? <ConceptDetail /> : <Navigate to="/login" />}
+          element={user.isAuthenticated ? <ConceptDetail /> : <Navigate to="/login" replace />}
         />
         <Route
           path="/tools/explain/:type/:notebookId"
-          element={user.isAuthenticated ? <ExplainConceptPage /> : <Navigate to="/login" />}
+          element={user.isAuthenticated ? <ExplainConceptPage /> : <Navigate to="/login" replace />}
         />
       </Routes>
     </UserContext.Provider>

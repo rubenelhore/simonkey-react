@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import './SignupPage.css';
-// Importa la imagen de la mascota
 import simonLogo from '/img/favicon.svg';
-// Importaciones de Firebase
+// Arreglamos las importaciones de Firebase
 import { 
-  createUserWithEmailAndPassword, 
-  signInWithRedirect, 
+  createUserWithEmailAndPassword,
   GoogleAuthProvider,
   updateProfile 
 } from 'firebase/auth';
+// Importar específicamente signInWithPopup
+import { signInWithPopup } from 'firebase/auth';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, firestore } from '../services/firebase';
 import { useNavigate } from 'react-router-dom';
@@ -163,17 +163,53 @@ const SignupPage: React.FC = () => {
     try {
       // Iniciar sesión con proveedor
       const provider = new GoogleAuthProvider();
+      provider.addScope('profile');
+      provider.addScope('email');
       
-      // Usa signInWithRedirect en lugar de signInWithPopup
-      await signInWithRedirect(auth, provider);
+      // Set custom parameters
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
       
-      // No necesitas el resto del código aquí porque la página se recargará
-      // después de la redirección. La lógica para crear el perfil debe moverse
-      // al manejador de redirección en App.tsx
+      // Usar signInWithPopup en lugar de signInWithRedirect
+      const result = await signInWithPopup(auth, provider);
+      const user = result.user;
+      
+      // Crear perfil de usuario en Firestore si es un usuario nuevo
+      try {
+        // Verificamos si es un usuario nuevo
+        const isNewUser = result.user.metadata.creationTime === result.user.metadata.lastSignInTime;
+        
+        if (isNewUser) {
+          await createUserProfile(user.uid);
+        }
+        
+        // Guardar información básica del usuario
+        const userData = {
+          id: user.uid,
+          email: user.email || '',
+          name: user.displayName || '',
+          isAuthenticated: true
+        };
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // Navegar a notebooks después de autenticación exitosa
+        navigate('/notebooks', { replace: true });
+      } catch (error) {
+        console.error("Error creando perfil de usuario:", error);
+        setError("Error al crear el perfil de usuario");
+      }
       
     } catch (err: any) {
-      console.error('Error en registro con proveedor:', err);
-      setError('Error al registrarse con proveedor externo');
+      console.error('Error en registro con Google:', err);
+      
+      let errorMessage = 'Error al registrarse con Google';
+      
+      if (err.code === 'auth/cancelled-popup-request') {
+        errorMessage = 'La solicitud de registro fue cancelada';
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
