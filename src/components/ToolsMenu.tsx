@@ -21,7 +21,7 @@ const ToolsMenu: React.FC<ToolsMenuProps> = ({ notebookId }) => {
         className={`tools-toggle-button ${isOpen ? 'active' : ''}`}
         style={{ fontFamily: "'Poppins', sans-serif" }}
       >
-        {isOpen ? 'Cerrar herramientas' : 'Ver herramientas'} 
+        {isOpen ? 'Cerrar' : 'Ver herramientas'} 
         <i className={`fas fa-chevron-${isOpen ? 'up' : 'down'}`}></i>
       </button>
 
