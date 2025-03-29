@@ -1,5 +1,5 @@
 import React, { useEffect, useState, createContext } from 'react';
-import { BrowserRouter, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import './App.css';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -17,6 +17,8 @@ import ConceptDetail from './pages/ConceptDetail';
 import ExplainConceptPage from './pages/ExplainConceptPage';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './services/firebase';
+import { getRedirectResult } from 'firebase/auth';
+import { getFirestore, doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 // Definir el tipo para el usuario
 interface User {
@@ -35,7 +37,6 @@ export const UserContext = createContext<{
   user: { isAuthenticated: false },
   setUser: () => {},
 });
-
 
 // Un componente wrapper que no usa hooks de React Router
 const HomePage: React.FC = () => {
@@ -56,8 +57,6 @@ const HomePageContent: React.FC = () => {
     { id: 8, src: '/img/image8.jpg', alt: 'Image 8' },
     { id: 9, src: '/img/image9.jpg', alt: 'Image 9' },
   ];
-
-  
 
   useEffect(() => {
     // Comprobar si hay un hash en la URL o un elemento guardado en localStorage
@@ -96,7 +95,17 @@ const HomePageContent: React.FC = () => {
   );
 };
 
-const App: React.FC = () => {
+// Componente envoltorio para la aplicación con rutas
+const AppWrapper: React.FC = () => {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
+  );
+};
+
+// Componente principal que contiene la lógica de la aplicación
+const AppContent: React.FC = () => {
   // Estado para gestionar la información del usuario
   const [user, setUser] = useState<User>({
     isAuthenticated: false
@@ -105,6 +114,8 @@ const App: React.FC = () => {
   // Usamos el hook de Firebase para la autenticación
   const [firebaseUser, firebaseLoading] = useAuthState(auth);
   
+  const navigate = useNavigate();
+
   // Efecto para verificar si hay un usuario en Firebase al cargar la aplicación
   useEffect(() => {
     if (!firebaseLoading) {
@@ -127,44 +138,86 @@ const App: React.FC = () => {
     }
   }, [firebaseUser, firebaseLoading]);
 
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth);
+        if (result && result.user) {
+          // Verificar si es un usuario nuevo
+          const isNewUser = result.operationType === 'signIn';
+          
+          // Si es nuevo usuario, crear su perfil en Firestore
+          if (isNewUser && result.user.email) {
+            const db = getFirestore();
+            await setDoc(doc(db, 'users', result.user.uid), {
+              email: result.user.email,
+              username: result.user.displayName || result.user.email.split('@')[0],
+              birthdate: null,
+              createdAt: serverTimestamp(),
+              subscription: 'free',
+              notebookCount: 0
+            });
+          }
+          
+          const userData = {
+            id: result.user.uid,
+            email: result.user.email || undefined,
+            name: result.user.displayName || result.user.email?.split('@')[0],
+            photoURL: result.user.photoURL || undefined,
+            isAuthenticated: true
+          };
+          
+          localStorage.setItem('user', JSON.stringify(userData));
+          setUser(userData);
+          navigate('/notebooks');
+        }
+      } catch (error) {
+        console.error("Error handling redirect result", error);
+      }
+    };
+    
+    handleRedirectResult();
+  }, [navigate]);
+
   if (firebaseLoading) {
     return <div>Cargando...</div>;
   }
 
   return (
     <UserContext.Provider value={{ user, setUser }}>
-      <BrowserRouter>
-        <Routes>
-          {/* Ruta principal: redirige a /notebooks si está autenticado */}
-          <Route 
-            path="/" 
-            element={user.isAuthenticated ? <Navigate to="/notebooks" /> : <HomePage />} 
-          />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          
-          {/* Rutas protegidas para notebooks y conceptos */}
-          <Route
-            path="/notebooks"
-            element={user.isAuthenticated ? <Notebooks /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/notebooks/:id"
-            element={user.isAuthenticated ? <NotebookDetail /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/notebooks/:notebookId/concepto/:conceptoId/:index"
-            element={user.isAuthenticated ? <ConceptDetail /> : <Navigate to="/login" />}
-          />
-          <Route
-            path="/tools/explain/:type/:notebookId"
-            element={user.isAuthenticated ? <ExplainConceptPage /> : <Navigate to="/login" />}
-          />
-        </Routes>
-      </BrowserRouter>
+      <Routes>
+        {/* Ruta principal: redirige a /notebooks si está autenticado */}
+        <Route 
+          path="/" 
+          element={user.isAuthenticated ? <Navigate to="/notebooks" /> : <HomePage />} 
+        />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        
+        {/* Rutas protegidas para notebooks y conceptos */}
+        <Route
+          path="/notebooks"
+          element={user.isAuthenticated ? <Notebooks /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/notebooks/:id"
+          element={user.isAuthenticated ? <NotebookDetail /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/notebooks/:notebookId/concepto/:conceptoId/:index"
+          element={user.isAuthenticated ? <ConceptDetail /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/tools/explain/:type/:notebookId"
+          element={user.isAuthenticated ? <ExplainConceptPage /> : <Navigate to="/login" />}
+        />
+      </Routes>
     </UserContext.Provider>
   );
 };
+
+// Componente principal exportado
+const App: React.FC = () => <AppWrapper />;
 
 export default App;

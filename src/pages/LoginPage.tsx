@@ -5,14 +5,14 @@ import simonLogo from '/img/favicon.svg';
 // Importaciones de Firebase
 import { 
   signInWithEmailAndPassword, 
-  signInWithPopup, 
   GoogleAuthProvider,
-  onAuthStateChanged
+  onAuthStateChanged,
+  signInWithRedirect
 } from 'firebase/auth';
 import { auth } from '../services/firebase'; // Corregida la ruta del servicio
 import { useNavigate } from 'react-router-dom';
 
-const LoginPage: React.FC = () => {
+const LoginPage: React.FC = () => {     
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -80,27 +80,23 @@ const LoginPage: React.FC = () => {
       provider.addScope('profile');
       provider.addScope('email');
       
-      // Set custom parameters to handle cross-origin issues
+      // Set custom parameters
       provider.setCustomParameters({
         prompt: 'select_account',
         ...(email ? { login_hint: email } : {})
       });
       
-      const result = await signInWithPopup(auth, provider);
-      console.log('Inicio de sesión con Google exitoso');
+      // Usar signInWithRedirect en lugar de signInWithPopup
+      await signInWithRedirect(auth, provider);
+      // No necesitas navegar aquí, la redirección se encargará de ello
+      // El manejador en App.tsx procesará el resultado cuando vuelva
       
-      if (result.user) {
-        navigate('/notebooks');
-      }
     } catch (err: any) {
       console.error('Error en inicio de sesión con Google:', err);
+      
       let errorMessage = 'Error al iniciar sesión con Google';
       
-      if (err.code === 'auth/popup-closed-by-user') {
-        errorMessage = 'Se cerró la ventana de inicio de sesión';
-      } else if (err.code === 'auth/popup-blocked') {
-        errorMessage = 'El navegador bloqueó la ventana emergente. Por favor, permite ventanas emergentes para este sitio.';
-      } else if (err.code === 'auth/cancelled-popup-request') {
+      if (err.code === 'auth/cancelled-popup-request') {
         errorMessage = 'La solicitud de inicio de sesión fue cancelada';
       }
       

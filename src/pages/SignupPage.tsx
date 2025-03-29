@@ -5,7 +5,7 @@ import simonLogo from '/img/favicon.svg';
 // Importaciones de Firebase
 import { 
   createUserWithEmailAndPassword, 
-  signInWithPopup, 
+  signInWithRedirect, 
   GoogleAuthProvider,
   updateProfile 
 } from 'firebase/auth';
@@ -157,43 +157,26 @@ const SignupPage: React.FC = () => {
     }
   };
   
-  const handleProviderSignup = async (provider: GoogleAuthProvider) => {
+  const handleGoogleSignup = async () => {
     setIsLoading(true);
     
     try {
       // Iniciar sesión con proveedor
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
+      const provider = new GoogleAuthProvider();
       
-      // Verificar si es un usuario nuevo para crear su perfil
-      const isNewUser = result.operationType === 'signIn';
+      // Usa signInWithRedirect en lugar de signInWithPopup
+      await signInWithRedirect(auth, provider);
       
-      if (isNewUser && user.email) {
-        // Crear perfil en Firestore con datos disponibles
-        await setDoc(doc(firestore, 'users', user.uid), {
-          email: user.email,
-          username: user.displayName || user.email.split('@')[0],
-          birthdate: null, // No podemos obtener esto de los proveedores
-          createdAt: serverTimestamp(),
-          subscription: 'free',
-          notebookCount: 0
-        });
-      }
+      // No necesitas el resto del código aquí porque la página se recargará
+      // después de la redirección. La lógica para crear el perfil debe moverse
+      // al manejador de redirección en App.tsx
       
-      console.log('Registro con proveedor exitoso');
-      // Redirigir al usuario a la página de Notebooks
-      navigate('/notebooks');
     } catch (err: any) {
       console.error('Error en registro con proveedor:', err);
       setError('Error al registrarse con proveedor externo');
     } finally {
       setIsLoading(false);
     }
-  };
-  
-  const handleGoogleSignup = () => {
-    const provider = new GoogleAuthProvider();
-    handleProviderSignup(provider);
   };
   
   return (
