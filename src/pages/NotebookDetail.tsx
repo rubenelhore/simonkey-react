@@ -1,7 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, auth } from '../services/firebase';
-import { doc, getDoc, collection, getDocs, query, where, updateDoc, arrayUnion, setDoc } from 'firebase/firestore';
+import { 
+  doc, 
+  getDoc, 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  updateDoc, 
+  setDoc,
+  arrayUnion, 
+  serverTimestamp 
+} from 'firebase/firestore';
 import { GoogleGenerativeAI} from '@google/generative-ai';
 import ToolsMenu from '../components/ToolsMenu';
 import EvaluationMenu from '../components/EvaluationMenu';
@@ -285,10 +296,12 @@ const NotebookDetail = () => {
         const existingDoc = conceptosDocs.find(doc => doc.cuadernoId === id);
         if (existingDoc) {
           const conceptosRef = doc(db, 'conceptos', existingDoc.id);
+          
+          // IMPORTANTE: Usa el array completo en lugar de arrayUnion para evitar documentos duplicados
           await updateDoc(conceptosRef, {
-            conceptos: arrayUnion(...conceptosExtraidos)
+            conceptos: [...existingDoc.conceptos, ...conceptosExtraidos]
           });
-          // Actualizamos el estado local agregando los nuevos conceptos al array existente
+          
           updatedConceptosDoc = {
             ...existingDoc,
             conceptos: [...existingDoc.conceptos, ...conceptosExtraidos]
@@ -301,11 +314,23 @@ const NotebookDetail = () => {
 
       if (!updatedConceptosDoc) {
         // Si no existe ningún documento, creamos uno nuevo
-        // Agregamos al estado local. Como usamos el id del cuaderno para el documento nuevo:
+        // IMPORTANTE: Genera un nuevo ID para el documento en lugar de usar el ID del cuaderno
+        const newDocRef = doc(collection(db, 'conceptos'));
+        const newDocId = newDocRef.id;
+        
+        await setDoc(newDocRef, {
+          id: newDocId,
+          cuadernoId: id,
+          usuarioId: auth.currentUser?.uid || '',
+          conceptos: conceptosExtraidos,
+          creadoEn: serverTimestamp()
+        });
+        
+        // Agregamos al estado local
         setConceptosDocs(prev => [
           ...prev,
           {
-            id: id,
+            id: newDocId,  // Usa el nuevo ID generado
             cuadernoId: id,
             usuarioId: auth.currentUser?.uid || '',
             conceptos: conceptosExtraidos,
@@ -374,17 +399,22 @@ const NotebookDetail = () => {
       }
 
       if (!updatedConceptosDoc) {
-        // Si no existe un documento, crear uno nuevo usando el id del cuaderno
-        await setDoc(doc(db, 'conceptos', id), {
+        // Si no existe un documento, crear uno nuevo usando un ID generado
+        const newDocRef = doc(collection(db, 'conceptos'));
+        const newDocId = newDocRef.id;
+        
+        await setDoc(newDocRef, {
+          id: newDocId,
           cuadernoId: id,
           usuarioId: auth.currentUser.uid,
           conceptos: [conceptoManual],
-          creadoEn: new Date()
+          creadoEn: serverTimestamp()
         });
+        
         setConceptosDocs(prev => [
           ...prev,
           {
-            id: id,
+            id: newDocId,  // Usa el nuevo ID generado
             cuadernoId: id,
             usuarioId: auth.currentUser?.uid || '',
             conceptos: [conceptoManual],
