@@ -188,15 +188,11 @@
 }
 
 .whatsapp {
-  background-color: #25D366;
-}
-
-.telegram {
-  background-color: #0088cc;
+  background-color: var(--primary-color);
 }
 
 .email {
-  background-color: #D44638;
+  background-color: var(--primary-color)s;
 }
 
 /* Botón guardar cuaderno */

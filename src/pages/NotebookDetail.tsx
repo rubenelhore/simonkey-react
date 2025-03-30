@@ -767,14 +767,6 @@ const NotebookDetail = () => {
                     <i className="fab fa-whatsapp"></i>
                   </a>
                   <a 
-                    href={`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=¡Mira este cuaderno de estudio en Simonkey!`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="social-button telegram"
-                  >
-                    <i className="fab fa-telegram"></i>
-                  </a>
-                  <a 
                     href={`mailto:?subject=Cuaderno compartido desde Simonkey&body=¡Hola! He compartido contigo un cuaderno de estudio en Simonkey. Puedes acceder a él aquí: ${encodeURIComponent(shareLink)}`} 
                     className="social-button email"
                   >
