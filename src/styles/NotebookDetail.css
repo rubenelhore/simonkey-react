@@ -188,11 +188,11 @@
 }
 
 .whatsapp {
-  background-color: var(--primary-color);
+  background-color: var(--notebook-color);
 }
 
 .email {
-  background-color: var(--primary-color);
+  background-color: var(--notebook-color);
 }
 
 /* Botón guardar cuaderno */
@@ -597,12 +597,13 @@
   align-items: center;
   padding: 1.25rem 1.5rem;
   border-bottom: 1px solid #eee;
+  background-color: var(--notebook-color);
 }
 
 .modal-header h2 {
   margin: 0;
   font-size: 1.3rem;
-  color: var(--primary-color);
+  color: white;
 }
 
 .close-modal-button {
