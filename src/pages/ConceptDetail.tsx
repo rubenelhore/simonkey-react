@@ -359,7 +359,7 @@ const ConceptDetail = () => {
             >
               <i className="fas fa-arrow-left"></i> Volver
             </button>
-            <h1>{cuaderno.title} - Concepto</h1>
+            <h1 className="centered-title">{cuaderno.title} - Conceptos</h1>
           </div>
         </div>
       </header>

@@ -578,12 +578,16 @@ const NotebookDetail = () => {
     <div className="notebook-detail-container">
       <header className="notebook-detail-header">
         <div className="header-content">
-          <div className="breadcrumb">
-            <button onClick={() => navigate('/notebooks')} className="back-button">
-              <i className="fas fa-arrow-left"></i> Volver
-            </button>
+          <button onClick={() => navigate('/notebooks')} className="back-button">
+            <i className="fas fa-arrow-left"></i> Volver
+          </button>
+          
+          <div className="title-container">
             <h1>{cuaderno.title}</h1>
           </div>
+          
+          {/* Espacio vacío para mantener el equilibrio del flexbox */}
+          <div className="spacer"></div>
         </div>
       </header>
 

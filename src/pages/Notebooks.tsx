@@ -248,7 +248,7 @@ const Notebooks: React.FC = () => {
           {/* Espacio Personal Header */}
           <div className="personal-space-header">
             <h2 className="user-greeting">
-              Espacio Personal de <span style={{ color: '#6147FF' }}>{userData.nombre || "Usuario"}</span>
+              Espacio Personal de <span style={{ color: '#6147FF' }}>{userData.nombre || "Simón"}</span>
             </h2>
           </div>
           
