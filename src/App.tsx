@@ -1,5 +1,5 @@
 import React, { useEffect, useState, createContext } from 'react';
-import { BrowserRouter, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import './App.css';
 import Header from './components/Header';
 import Hero from './components/Hero';
@@ -15,6 +15,7 @@ import Notebooks from './pages/Notebooks';
 import NotebookDetail from './pages/NotebookDetail';
 import ConceptDetail from './pages/ConceptDetail';
 import ExplainConceptPage from './pages/ExplainConceptPage';
+import SharedNotebook from './pages/SharedNotebook';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './services/firebase';
 
@@ -96,9 +97,9 @@ const HomePageContent: React.FC = () => {
 // Componente envoltorio para la aplicación con rutas
 const AppWrapper: React.FC = () => {
   return (
-    <BrowserRouter>
+    <Router>
       <AppContent />
-    </BrowserRouter>
+    </Router>
   );
 };
 
@@ -176,6 +177,7 @@ const AppContent: React.FC = () => {
           path="/tools/explain/:type/:notebookId"
           element={user.isAuthenticated ? <ExplainConceptPage /> : <Navigate to="/login" replace />}
         />
+        <Route path="/shared/:shareId" element={<SharedNotebook />} />
       </Routes>
     </UserContext.Provider>
   );

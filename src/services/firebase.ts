@@ -3,8 +3,9 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { 
-  getFirestore, 
-  enableIndexedDbPersistence,
+  initializeFirestore,
+  persistentLocalCache,
+  persistentSingleTabManager,
   collection,
   doc,
   query,
@@ -23,7 +24,8 @@ import {
 import { getStorage } from "firebase/storage";
 
 // Tu configuración de Firebase
-const firebaseConfig = {  apiKey: "AIzaSyC26QZw7297E_YOoF5OqR2Ck6x_bw5_Hic",
+const firebaseConfig = {
+  apiKey: "AIzaSyC26QZw7297E_YOoF5OqR2Ck6x_bw5_Hic",
   authDomain: "simonkey-5c78f.firebaseapp.com",
   projectId: "simonkey-5c78f",
   storageBucket: "simonkey-5c78f.firebasestorage.app",
@@ -36,7 +38,14 @@ const app = initializeApp(firebaseConfig);
 
 // Exportar servicios de Firebase
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+
+// Nueva forma de inicializar Firestore con persistencia single-tab
+export const db = initializeFirestore(app, {
+  localCache: persistentLocalCache({
+    tabManager: persistentSingleTabManager({})  // Pass an empty object as config
+  })
+});
+
 export const storage = getStorage(app);
 
 // Configurar persistencia para autenticación (mantener sesión activa)
@@ -44,27 +53,6 @@ setPersistence(auth, browserLocalPersistence)
   .catch((error) => {
     console.error("Error configurando persistencia de autenticación:", error);
   });
-
-// Habilitar persistencia offline para Firestore (opcional)
-// Solo habilitar en entorno del cliente (browser) y con manejo de errores adecuado
-if (typeof window !== 'undefined') {
-  try {
-    enableIndexedDbPersistence(db)
-      .catch((error) => {
-        if (error.code === 'failed-precondition') {
-          // Múltiples pestañas abiertas, la persistencia solo puede habilitarse en una pestaña a la vez
-          console.log('La persistencia no se pudo habilitar porque hay múltiples pestañas abiertas');
-        } else if (error.code === 'unimplemented') {
-          // El navegador actual no soporta las características requeridas
-          console.log('Tu navegador no soporta la persistencia offline');
-        } else {
-          console.error("Error habilitando persistencia Firestore:", error);
-        }
-      });
-  } catch (err) {
-    console.error("Error al configurar persistencia:", err);
-  }
-}
 
 // Exportación explícita de Firestore (para mayor claridad)
 export const firestore = db;

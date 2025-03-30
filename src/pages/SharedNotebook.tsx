@@ -215,7 +215,7 @@ const SharedNotebook = () => {
                   <i className="fas fa-sign-in-alt"></i> Iniciar Sesión
                 </button>
                 <button 
-                  onClick={() => navigate('/register', { state: { returnUrl: `/shared/${shareId}` } })} 
+                  onClick={() => navigate('/signup', { state: { returnUrl: `/shared/${shareId}` } })} 
                   className="register-button"
                 >
                   <i className="fas fa-user-plus"></i> Registrarse
