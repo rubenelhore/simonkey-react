@@ -100,8 +100,8 @@
 
 /* Botón de compartir */
 .share-button {
-  background-color: white;
-  color: var(--notebook-color);
+  background-color: white !important;
+  color: var(--notebook-color) !important;
   border: none;
   padding: 0.5rem 1rem;
   border-radius: 4px;
@@ -114,7 +114,11 @@
 }
 
 .share-button:hover {
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.share-button i {
+  color: var(--notebook-color) !important; /* Ensure icon also has notebook color */
 }
 
 /* Modal de compartir */
