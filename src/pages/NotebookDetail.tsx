@@ -83,6 +83,11 @@ const NotebookDetail = () => {
   // Referencia para el modal
   const modalRef = useRef<HTMLDivElement>(null);
   
+  // Añadir estos estados
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+  const [shareLink, setShareLink] = useState<string>('');
+  const [copySuccess, setCopySuccess] = useState<boolean>(false);
+  
   // Initialize Gemini AI
   useEffect(() => {
     const initializeGemini = () => {
@@ -448,6 +453,56 @@ const NotebookDetail = () => {
     setIsModalOpen(true);
   };
 
+  // Función para manejar el compartir
+  const handleShareNotebook = async () => {
+    if (!id || !cuaderno) return;
+    
+    try {
+      // Verificar si el cuaderno ya tiene un shareId
+      if (!cuaderno.shareId) {
+        // Crear un shareId único
+        const shareId = crypto.randomUUID();
+        
+        // Actualizar el documento del cuaderno con el shareId
+        const notebookRef = doc(db, 'notebooks', id);
+        await updateDoc(notebookRef, {
+          shareId: shareId,
+          isShared: true,
+          sharedAt: serverTimestamp()
+        });
+        
+        // Actualizar el estado local
+        setCuaderno({...cuaderno, shareId, isShared: true});
+        
+        // Generar el enlace compartible
+        const shareUrl = `${window.location.origin}/shared/${shareId}`;
+        setShareLink(shareUrl);
+      } else {
+        // Usar el shareId existente
+        const shareUrl = `${window.location.origin}/shared/${cuaderno.shareId}`;
+        setShareLink(shareUrl);
+      }
+      
+      // Abrir el modal de compartir
+      setIsShareModalOpen(true);
+    } catch (error) {
+      console.error("Error al compartir cuaderno:", error);
+      alert('Error al compartir el cuaderno. Por favor intenta nuevamente.');
+    }
+  };
+
+  // Función para copiar el enlace al clipboard
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(shareLink)
+      .then(() => {
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+      })
+      .catch(err => {
+        console.error('Error al copiar: ', err);
+      });
+  };
+
   // Componentes del modal
   const renderModalContent = () => {
     return (
@@ -586,8 +641,11 @@ const NotebookDetail = () => {
             <h1>{cuaderno.title}</h1>
           </div>
           
-          {/* Espacio vacío para mantener el equilibrio del flexbox */}
-          <div className="spacer"></div>
+          <div className="header-actions">
+            <button onClick={handleShareNotebook} className="share-button" title="Compartir cuaderno">
+              <i className="fas fa-share-alt"></i> Compartir
+            </button>
+          </div>
         </div>
       </header>
 
@@ -663,6 +721,72 @@ const NotebookDetail = () => {
       >
         <i className="fas fa-plus"></i>
       </button>
+
+      {/* Modal para compartir cuaderno */}
+      {isShareModalOpen && ReactDOM.createPortal(
+        <div className="modal-overlay" onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setIsShareModalOpen(false);
+          }
+        }}>
+          <div className="modal-content share-modal">
+            <div className="modal-header">
+              <h2>Compartir Cuaderno</h2>
+              <button className="close-modal-button" onClick={() => setIsShareModalOpen(false)}>
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            
+            <div className="modal-body">
+              <p>Comparte este enlace para que otros usuarios puedan acceder a tu cuaderno:</p>
+              
+              <div className="share-link-container">
+                <input 
+                  type="text" 
+                  value={shareLink} 
+                  className="share-link-input" 
+                  readOnly 
+                />
+                <button 
+                  onClick={copyToClipboard} 
+                  className="copy-button"
+                >
+                  {copySuccess ? <i className="fas fa-check"></i> : <i className="fas fa-copy"></i>}
+                </button>
+              </div>
+              
+              <div className="share-options">
+                <h3>Compartir en:</h3>
+                <div className="social-buttons">
+                  <a 
+                    href={`https://wa.me/?text=¡Mira este cuaderno de estudio en Simonkey! ${encodeURIComponent(shareLink)}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="social-button whatsapp"
+                  >
+                    <i className="fab fa-whatsapp"></i>
+                  </a>
+                  <a 
+                    href={`https://t.me/share/url?url=${encodeURIComponent(shareLink)}&text=¡Mira este cuaderno de estudio en Simonkey!`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="social-button telegram"
+                  >
+                    <i className="fab fa-telegram"></i>
+                  </a>
+                  <a 
+                    href={`mailto:?subject=Cuaderno compartido desde Simonkey&body=¡Hola! He compartido contigo un cuaderno de estudio en Simonkey. Puedes acceder a él aquí: ${encodeURIComponent(shareLink)}`} 
+                    className="social-button email"
+                  >
+                    <i className="fas fa-envelope"></i>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 };
