@@ -6,6 +6,37 @@ import '../styles/ConceptDetail.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import TextToSpeech from '../components/TextToSpeech';
 import '../styles/TextToSpeech.css';
+import { loadVoiceSettings } from '../hooks/voiceService';
+
+// Añade esta función debajo de tus imports:
+
+const triggerAutoRead = (delay = 1000) => {
+  setTimeout(() => {
+    // Cancelar cualquier síntesis en curso primero
+    if (window.speechSynthesis) {
+      window.speechSynthesis.cancel();
+    }
+    
+    // Intentar encontrar el botón en diferentes selectores
+    const selectors = [
+      '.concept-definition .text-to-speech-button',
+      '.notes-text .text-to-speech-button',
+      '.text-to-speech-button'
+    ];
+    
+    for (const selector of selectors) {
+      const button = document.querySelector(selector);
+      if (button instanceof HTMLButtonElement) {
+        console.log(`Auto-reproducción activada (selector: ${selector})`);
+        button.click();
+        return true;
+      }
+    }
+    
+    console.warn("No se encontró ningún botón de reproducción");
+    return false;
+  }, delay);
+};
 
 interface Concept {
   término: string;
@@ -13,38 +44,6 @@ interface Concept {
   fuente: string;
   notasPersonales?: string;
 }
-
-// Función para cargar las configuraciones de voz del usuario
-const loadVoiceSettings = async () => {
-  try {
-    if (!auth.currentUser) {
-      throw new Error("Usuario no autenticado");
-    }
-    
-    // Obtener las configuraciones de voz del usuario desde Firestore
-    const userSettingsRef = doc(db, 'userSettings', auth.currentUser.uid);
-    const settingsSnap = await getDoc(userSettingsRef);
-    
-    if (settingsSnap.exists() && settingsSnap.data().voiceSettings) {
-      return settingsSnap.data().voiceSettings;
-    }
-    
-    // Si no hay configuraciones, devolver valores predeterminados
-    return {
-      autoRead: false,
-      voiceRate: 1,
-      voicePitch: 1
-    };
-  } catch (error) {
-    console.error("Error al cargar configuraciones de voz:", error);
-    // Devolver configuración predeterminada en caso de error
-    return {
-      autoRead: false,
-      voiceRate: 1,
-      voicePitch: 1
-    };
-  }
-};
 
 const ConceptDetail = () => {
   const { notebookId, conceptoId, index } = useParams<{ 
@@ -69,6 +68,16 @@ const ConceptDetail = () => {
   // Navegación entre conceptos
   const [totalConcepts, setTotalConcepts] = useState<number>(0);
   const [currentIndex, setCurrentIndex] = useState<number>(0);
+  const [isNavigating, setIsNavigating] = useState<boolean>(false);
+
+  // Añade este estado
+  const [conceptProgress, setConceptProgress] = useState<number>(0);
+
+  // Añade este estado para almacenar conceptos precargados
+  const [preloadedConcepts, setPreloadedConcepts] = useState<{[key: number]: Concept}>({});
+
+  // Añade este estado
+  const [autoReadEnabled, setAutoReadEnabled] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -123,30 +132,46 @@ const ConceptDetail = () => {
           setNotasPersonales(conceptoData.notasPersonales);
         }
         
+        // Simular un progreso basado en visitas (esto es un ejemplo; 
+        // idealmente se almacenaría en Firestore)
+        if (concepto) {
+          const progressKey = `progress_${notebookId}_${conceptoId}_${idx}`;
+          let progress = parseInt(localStorage.getItem(progressKey) || "0");
+          
+          // Incrementar en 1 cada vez que se visita, hasta 100
+          progress = Math.min(progress + 1, 100);
+          localStorage.setItem(progressKey, progress.toString());
+          
+          setConceptProgress(progress);
+        }
+
         setLoading(false);
 
         // IMPORTANTE: Implementación mejorada de autoRead
-        if (auth.currentUser) {
+        if (auth.currentUser && autoReadEnabled) {
           try {
             // Cargar configuraciones de voz del usuario
             const voiceSettings = await loadVoiceSettings();
             
             // Verificar si autoRead está habilitado
-            if (voiceSettings.autoRead) {
-              // Esperar a que el componente se renderice completamente
-              setTimeout(() => {
-                // Obtener el botón específico de TextToSpeech para el concepto
-                const ttsButton = document.querySelector('.concept-definition .text-to-speech-button');
-                if (ttsButton instanceof HTMLButtonElement) {
-                  console.log("Auto-reproducción activada");
-                  ttsButton.click();
-                } else {
-                  console.warn("No se encontró el botón de reproducción automática");
-                }
-              }, 1000);
+            if (voiceSettings && voiceSettings.autoRead) {
+              triggerAutoRead(1500);
             }
           } catch (error) {
             console.error("Error al cargar configuraciones de voz:", error);
+            
+            // Intentar cargar desde localStorage como respaldo
+            try {
+              const localSettings = localStorage.getItem('voiceSettings');
+              if (localSettings) {
+                const settings = JSON.parse(localSettings);
+                if (settings.autoRead) {
+                  triggerAutoRead(1500);
+                }
+              }
+            } catch (e) {
+              console.error("Error al cargar configuraciones desde localStorage:", e);
+            }
           }
         }
       } catch (err) {
@@ -157,7 +182,7 @@ const ConceptDetail = () => {
     };
     
     fetchData();
-  }, [notebookId, conceptoId, index]);
+  }, [notebookId, conceptoId, index, autoReadEnabled]);
 
   useEffect(() => {
     if (cuaderno && cuaderno.color) {
@@ -173,6 +198,65 @@ const ConceptDetail = () => {
       document.documentElement.style.setProperty('--notebook-color', 'var(--primary-color)');
     };
   }, [cuaderno]);
+
+  // Añade este effect para los atajos de teclado
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // No activar si estamos en un campo de texto
+      if (event.target instanceof HTMLInputElement || 
+          event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      
+      if (event.key === 'ArrowRight' && currentIndex < totalConcepts - 1) {
+        navigateToNextConcept();
+      } else if (event.key === 'ArrowLeft' && currentIndex > 0) {
+        navigateToPreviousConcept();
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [currentIndex, totalConcepts, conceptoId, notebookId]);
+
+  // Función para precargar conceptos cercanos (siguiente y anterior)
+  const preloadNearbyConcepts = async (currentIdx: number) => {
+    try {
+      if (!conceptoId) return;
+      
+      const conceptoRef = doc(db, 'conceptos', conceptoId);
+      const conceptoSnap = await getDoc(conceptoRef);
+      
+      if (!conceptoSnap.exists()) return;
+      
+      const allConcepts = conceptoSnap.data().conceptos;
+      const preloadedData: {[key: number]: Concept} = {};
+      
+      // Precargar el concepto siguiente
+      if (currentIdx + 1 < allConcepts.length) {
+        preloadedData[currentIdx + 1] = allConcepts[currentIdx + 1];
+      }
+      
+      // Precargar el concepto anterior
+      if (currentIdx - 1 >= 0) {
+        preloadedData[currentIdx - 1] = allConcepts[currentIdx - 1];
+      }
+      
+      setPreloadedConcepts(preloadedData);
+    } catch (error) {
+      console.error("Error al precargar conceptos:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (concepto && !loading) {
+      // Precargar conceptos cercanos para navegación más fluida
+      preloadNearbyConcepts(currentIndex);
+    }
+  }, [concepto, currentIndex, loading]);
 
   const handleDeleteConcept = async () => {
     if (!notebookId || !conceptoId || !concepto) return;
@@ -333,8 +417,8 @@ const ConceptDetail = () => {
   // Funciones de navegación entre conceptos
   const navigateToNextConcept = () => {
     if (currentIndex < totalConcepts - 1) {
+      setIsNavigating(true);
       const nextIndex = currentIndex + 1;
-      // En lugar de solo navegar, actualiza también los estados
       navigate(`/notebooks/${notebookId}/concepto/${conceptoId}/${nextIndex}`);
       loadConceptAtIndex(nextIndex);
     }
@@ -342,6 +426,7 @@ const ConceptDetail = () => {
 
   const navigateToPreviousConcept = () => {
     if (currentIndex > 0) {
+      setIsNavigating(true);
       const prevIndex = currentIndex - 1;
       navigate(`/notebooks/${notebookId}/concepto/${conceptoId}/${prevIndex}`);
       loadConceptAtIndex(prevIndex);
@@ -352,6 +437,33 @@ const ConceptDetail = () => {
     try {
       setLoading(true);
       
+      // Primero intentar usar un concepto precargado si está disponible
+      if (preloadedConcepts[idx]) {
+        const conceptoData = preloadedConcepts[idx];
+        setConcepto(conceptoData);
+        setCurrentIndex(idx);
+        setNotasPersonales(conceptoData.notasPersonales || '');
+        
+        // Resetear estados
+        setIsEditing(false);
+        setIsEditingNotes(false);
+        setEditedConcept(null);
+        
+        // Actualizar la URL sin recargar la página
+        window.history.replaceState(
+          null, 
+          '', 
+          `/notebooks/${notebookId}/concepto/${conceptoId}/${idx}`
+        );
+        
+        // Autoread si está habilitado
+        handleAutoRead();
+        
+        setLoading(false);
+        return;
+      }
+      
+      // Si no está precargado, cargarlo normalmente
       const conceptoRef = doc(db, 'conceptos', conceptoId as string);
       const conceptoSnap = await getDoc(conceptoRef);
       
@@ -375,40 +487,44 @@ const ConceptDetail = () => {
           setEditedConcept(null);
           
           // IMPORTANTE: Implementación mejorada para autoRead al navegar
-          if (auth.currentUser) {
-            try {
-              const voiceSettings = await loadVoiceSettings();
-              
-              // Si autoRead está habilitado, activar la síntesis de voz
-              if (voiceSettings.autoRead) {
-                // Esperamos un poco para asegurarnos de que el componente se haya actualizado
-                setTimeout(() => {
-                  // Cancelar cualquier síntesis en curso primero
-                  if (window.speechSynthesis) {
-                    window.speechSynthesis.cancel();
-                  }
-                  
-                  // Buscar específicamente el botón de TextToSpeech dentro de la definición
-                  const ttsButton = document.querySelector('.concept-definition .text-to-speech-button');
-                  if (ttsButton instanceof HTMLButtonElement) {
-                    console.log("Auto-reproducción activada al navegar");
-                    ttsButton.click();
-                  } else {
-                    console.warn("No se encontró el botón de reproducción automática al navegar");
-                  }
-                }, 500);
-              }
-            } catch (error) {
-              console.error("Error al cargar configuraciones de voz para navegación:", error);
-            }
-          }
+          handleAutoRead();
         }
       }
       
       setLoading(false);
     } catch (error) {
       console.error("Error cargando concepto:", error);
+    } finally {
       setLoading(false);
+      setIsNavigating(false);
+    }
+  };
+
+  const handleAutoRead = async () => {
+    if (auth.currentUser) {
+      try {
+        const voiceSettings = await loadVoiceSettings();
+        if (voiceSettings?.autoRead) {
+          triggerAutoRead(800);
+        }
+      } catch (error) {
+        console.error("Error al cargar configuraciones de voz:", error);
+        fallbackToLocalStorage();
+      }
+    }
+  };
+
+  const fallbackToLocalStorage = () => {
+    try {
+      const localSettings = localStorage.getItem('voiceSettings');
+      if (localSettings) {
+        const settings = JSON.parse(localSettings);
+        if (settings.autoRead) {
+          triggerAutoRead(800);
+        }
+      }
+    } catch (e) {
+      console.error("Error al cargar configuraciones desde localStorage:", e);
     }
   };
 
@@ -456,24 +572,31 @@ const ConceptDetail = () => {
         <div className="concept-navigation">
           <button 
             onClick={navigateToPreviousConcept}
-            disabled={currentIndex === 0}
-            className="concept-nav-button previous"
+            disabled={currentIndex === 0 || isNavigating}
+            className={`concept-nav-button previous ${isNavigating ? 'navigating' : ''}`}
             aria-label="Concepto anterior"
             title="Concepto anterior"
           >
-            <i className="fas fa-chevron-left"></i>
+            {isNavigating ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-chevron-left"></i>}
           </button>
           <div className="concept-pagination">
             {currentIndex + 1} / {totalConcepts}
           </div>
           <button 
             onClick={navigateToNextConcept}
-            disabled={currentIndex === totalConcepts - 1}
-            className="concept-nav-button next"
+            disabled={currentIndex === totalConcepts - 1 || isNavigating}
+            className={`concept-nav-button next ${isNavigating ? 'navigating' : ''}`}
             aria-label="Siguiente concepto"
             title="Siguiente concepto"
           >
-            <i className="fas fa-chevron-right"></i>
+            {isNavigating ? <i className="fas fa-spinner fa-spin"></i> : <i className="fas fa-chevron-right"></i>}
+          </button>
+          <button 
+            onClick={() => setAutoReadEnabled(!autoReadEnabled)}
+            className="auto-read-toggle"
+            title={autoReadEnabled ? "Desactivar lectura automática" : "Activar lectura automática"}
+          >
+            <i className={`fas ${autoReadEnabled ? 'fa-volume-up' : 'fa-volume-mute'}`}></i>
           </button>
         </div>
         
@@ -483,6 +606,16 @@ const ConceptDetail = () => {
               // Modo de visualización
               <>
                 <h2 className="concept-term">{concepto.término}</h2>
+                <div className="concept-progress">
+                  <div className="progress-bar">
+                    <div 
+                      className="progress-fill"
+                      style={{ width: `${conceptProgress}%` }}
+                      title={`Progreso de estudio: ${conceptProgress}%`}
+                    ></div>
+                  </div>
+                  <span className="progress-text">{conceptProgress}% estudiado</span>
+                </div>
                 <div className="concept-definition">
                   <h3>Definición:</h3>
                   <p>{concepto.definición}</p>
@@ -640,6 +773,14 @@ const ConceptDetail = () => {
               )}
             </div>
           </div>
+        </div>
+
+        <div className="keyboard-shortcuts">
+          <h3>Atajos de teclado:</h3>
+          <ul>
+            <li><span className="key">←</span> Concepto anterior</li>
+            <li><span className="key">→</span> Siguiente concepto</li>
+          </ul>
         </div>
       </main>
     </div>

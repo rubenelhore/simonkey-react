@@ -494,6 +494,7 @@
   align-items: center;
   margin-bottom: 2rem;
   gap: 1rem;
+  flex-wrap: wrap;
 }
 
 .concept-nav-button {
@@ -576,4 +577,98 @@
 
 .concept-card-detail, .personal-notes-card {
   animation: fadeEffect 0.3s ease-in;
+}
+
+/* Estilo para el botón de navegación en estado de navegación */
+.concept-nav-button.navigating {
+  background-color: var(--light-gray);
+  cursor: wait;
+}
+
+/* Barra de progreso */
+.concept-progress {
+  margin: 10px 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.progress-bar {
+  height: 6px;
+  background-color: #e9ecef;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6147FF 0%, #9C27B0 100%);
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.progress-text {
+  font-size: 0.8rem;
+  color: var(--light-text);
+  text-align: right;
+}
+
+/* Estilos para atajos de teclado */
+.keyboard-shortcuts {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 5px;
+  border-left: 3px solid var(--notebook-color);
+}
+
+.keyboard-shortcuts h3 {
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  color: var(--light-text);
+}
+
+.keyboard-shortcuts ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.keyboard-shortcuts li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 5px;
+  font-size: 0.85rem;
+}
+
+.keyboard-shortcuts .key {
+  display: inline-block;
+  padding: 2px 6px;
+  margin-right: 10px;
+  background-color: #eee;
+  border-radius: 3px;
+  border: 1px solid #ddd;
+  font-family: monospace;
+}
+
+/* Estilos para el botón de auto-lectura */
+.auto-read-toggle {
+  background-color: var(--card-background);
+  border: none;
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: all 0.2s ease;
+  color: var(--notebook-color);
+  margin-left: 10px;
+}
+
+.auto-read-toggle:hover {
+  background-color: var(--notebook-color);
+  color: white;
 }

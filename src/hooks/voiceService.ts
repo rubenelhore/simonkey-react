@@ -10,7 +10,7 @@ export interface VoiceSettings {
   autoRead: boolean;
 }
 
-// Configuraciones por defecto
+// Configuraciones por defecto mejoradas
 export const defaultVoiceSettings: VoiceSettings = {
   voiceName: '',  // Se asignará dinámicamente la primera voz española disponible
   rate: 1.0,
@@ -19,44 +19,109 @@ export const defaultVoiceSettings: VoiceSettings = {
   autoRead: false
 };
 
+// Caché en memoria para las configuraciones de voz - Corregido con tipo explícito
+let voiceSettingsCache: VoiceSettings | null = null;
+let lastFetchTime = 0;
+const CACHE_DURATION = 60000; // 1 minuto de caché
+
 /**
  * Carga las configuraciones de voz del usuario actual
  */
 export const loadVoiceSettings = async (): Promise<VoiceSettings> => {
-  // Verificar que haya un usuario autenticado
-  if (!auth.currentUser) {
-    return { ...defaultVoiceSettings };
-  }
-  
-  try {
-    const userSettingsRef = doc(db, 'users', auth.currentUser.uid, 'settings', 'voice');
-    const settingsDoc = await getDoc(userSettingsRef);
+  // Si hay un usuario autenticado
+  if (auth.currentUser) {
+    const now = Date.now();
     
-    if (settingsDoc.exists()) {
-      const data = settingsDoc.data();
-      
-      // Combinar con valores por defecto para asegurar que todos los campos existan
-      return {
-        ...defaultVoiceSettings,
-        voiceName: data.voiceName || defaultVoiceSettings.voiceName,
-        rate: data.rate || defaultVoiceSettings.rate,
-        pitch: data.pitch || defaultVoiceSettings.pitch,
-        volume: data.volume || defaultVoiceSettings.volume,
-        autoRead: data.autoRead !== undefined ? data.autoRead : defaultVoiceSettings.autoRead
-      };
+    // Si tenemos settings en caché y son recientes, usarlos
+    if (voiceSettingsCache && now - lastFetchTime < CACHE_DURATION) {
+      console.log("Using cached voice settings");
+      return voiceSettingsCache;
     }
     
-    return { ...defaultVoiceSettings };
-  } catch (error) {
-    console.error("Error loading voice settings:", error);
-    return { ...defaultVoiceSettings };
+    try {
+      // Obtener desde Firestore
+      const userSettingsRef = doc(db, 'users', auth.currentUser.uid, 'settings', 'voice');
+      const settingsSnap = await getDoc(userSettingsRef);
+      
+      if (settingsSnap.exists()) {
+        // Actualizar caché - Convertir DocumentData a VoiceSettings
+        const data = settingsSnap.data();
+        const typedSettings: VoiceSettings = {
+          voiceName: data.voiceName || defaultVoiceSettings.voiceName,
+          rate: data.rate ?? defaultVoiceSettings.rate,
+          pitch: data.pitch ?? defaultVoiceSettings.pitch,
+          volume: data.volume ?? defaultVoiceSettings.volume,
+          autoRead: data.autoRead ?? defaultVoiceSettings.autoRead
+        };
+        
+        voiceSettingsCache = typedSettings;
+        lastFetchTime = now;
+        return voiceSettingsCache;
+      }
+      
+      // Si no existen en Firestore, intentar desde localStorage
+      const localSettings = localStorage.getItem('voiceSettings');
+      if (localSettings) {
+        try {
+          const parsedSettings = JSON.parse(localSettings);
+          // Asegurar que el objeto tenga la estructura correcta
+          const typedSettings: VoiceSettings = {
+            voiceName: parsedSettings.voiceName || defaultVoiceSettings.voiceName,
+            rate: parsedSettings.rate ?? defaultVoiceSettings.rate,
+            pitch: parsedSettings.pitch ?? defaultVoiceSettings.pitch,
+            volume: parsedSettings.volume ?? defaultVoiceSettings.volume,
+            autoRead: parsedSettings.autoRead ?? defaultVoiceSettings.autoRead
+          };
+          
+          voiceSettingsCache = typedSettings;
+          lastFetchTime = now;
+          return voiceSettingsCache;
+        } catch (e) {
+          console.error("Error parsing voice settings from localStorage:", e);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading voice settings from Firestore:", error);
+      
+      // Intentar cargar desde localStorage como respaldo
+      const localSettings = localStorage.getItem('voiceSettings');
+      if (localSettings) {
+        try {
+          const parsedSettings = JSON.parse(localSettings);
+          // Asegurar que el objeto tenga la estructura correcta
+          const typedSettings: VoiceSettings = {
+            voiceName: parsedSettings.voiceName || defaultVoiceSettings.voiceName,
+            rate: parsedSettings.rate ?? defaultVoiceSettings.rate,
+            pitch: parsedSettings.pitch ?? defaultVoiceSettings.pitch,
+            volume: parsedSettings.volume ?? defaultVoiceSettings.volume,
+            autoRead: parsedSettings.autoRead ?? defaultVoiceSettings.autoRead
+          };
+          
+          voiceSettingsCache = typedSettings;
+          lastFetchTime = now;
+          return voiceSettingsCache;
+        } catch (e) {
+          console.error("Error parsing voice settings from localStorage:", e);
+        }
+      }
+    }
   }
+  
+  // Devolver valores predeterminados si no hay datos en caché
+  return { ...defaultVoiceSettings };
 };
 
 /**
  * Guarda las configuraciones de voz del usuario actual
  */
 export const saveVoiceSettings = async (settings: VoiceSettings): Promise<boolean> => {
+  // Siempre guardar en localStorage como respaldo
+  try {
+    localStorage.setItem('voiceSettings', JSON.stringify(settings));
+  } catch (e) {
+    console.error("Error saving to localStorage:", e);
+  }
+  
   // Verificar que haya un usuario autenticado
   if (!auth.currentUser) {
     console.error("No user authenticated");
@@ -70,6 +135,10 @@ export const saveVoiceSettings = async (settings: VoiceSettings): Promise<boolea
       ...settings,
       updatedAt: new Date()
     });
+    
+    // Actualizar la caché
+    voiceSettingsCache = { ...settings };
+    lastFetchTime = Date.now();
     
     return true;
   } catch (error) {
@@ -109,88 +178,11 @@ export const getBestVoice = (preferredLanguage = 'es'): SpeechSynthesisVoice | n
 };
 
 /**
- * Crea y configura un objeto SpeechSynthesisUtterance
+ * Limpiar la caché de configuraciones
  */
-export const createUtterance = (
-  text: string, 
-  settings?: Partial<VoiceSettings>
-): SpeechSynthesisUtterance => {
-  const utterance = new SpeechSynthesisUtterance(text);
-  
-  // Configurar con los ajustes proporcionados o valores por defecto
-  utterance.rate = settings?.rate || defaultVoiceSettings.rate;
-  utterance.pitch = settings?.pitch || defaultVoiceSettings.pitch;
-  utterance.volume = settings?.volume || defaultVoiceSettings.volume;
-  
-  // Intentar asignar la voz seleccionada
-  if (settings?.voiceName && typeof window !== 'undefined' && window.speechSynthesis) {
-    const voices = window.speechSynthesis.getVoices();
-    const voice = voices.find(v => v.name === settings.voiceName);
-    if (voice) {
-      utterance.voice = voice;
-    }
-  }
-  
-  return utterance;
-};
-
-/**
- * Lee un texto en voz alta usando la configuración del usuario
- */
-export const speak = async (text: string, options?: { immediate?: boolean }): Promise<void> => {
-  if (typeof window === 'undefined' || !window.speechSynthesis) {
-    console.error("SpeechSynthesis not supported");
-    return;
-  }
-  
-  try {
-    // Cargar configuraciones del usuario
-    const settings = await loadVoiceSettings();
-    
-    // Si se especificó que debe ser inmediato, cancelar cualquier síntesis en curso
-    if (options?.immediate) {
-      window.speechSynthesis.cancel();
-    }
-    
-    // Crear y configurar el utterance
-    const utterance = createUtterance(text, settings);
-    
-    // Comenzar a hablar
-    window.speechSynthesis.speak(utterance);
-    
-    return new Promise((resolve) => {
-      utterance.onend = () => resolve();
-    });
-  } catch (error) {
-    console.error("Error in text-to-speech:", error);
-  }
-};
-
-/**
- * Detiene la síntesis de voz en curso
- */
-export const stopSpeaking = (): void => {
-  if (typeof window !== 'undefined' && window.speechSynthesis) {
-    window.speechSynthesis.cancel();
-  }
-};
-
-/**
- * Pausa la síntesis de voz en curso
- */
-export const pauseSpeaking = (): void => {
-  if (typeof window !== 'undefined' && window.speechSynthesis) {
-    window.speechSynthesis.pause();
-  }
-};
-
-/**
- * Reanuda la síntesis de voz pausada
- */
-export const resumeSpeaking = (): void => {
-  if (typeof window !== 'undefined' && window.speechSynthesis) {
-    window.speechSynthesis.resume();
-  }
+export const clearVoiceSettingsCache = (): void => {
+  voiceSettingsCache = null;
+  lastFetchTime = 0;
 };
 
 // Exportar todas las funciones y tipos
@@ -198,10 +190,6 @@ export default {
   loadVoiceSettings,
   saveVoiceSettings,
   getBestVoice,
-  createUtterance,
-  speak,
-  stopSpeaking,
-  pauseSpeaking,
-  resumeSpeaking,
-  defaultVoiceSettings
+  defaultVoiceSettings,
+  clearVoiceSettingsCache
 };
