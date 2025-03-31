@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { db } from '../services/firebase';
+import { db, auth } from '../services/firebase'; // Add auth import
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import '../styles/ConceptDetail.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -13,6 +13,38 @@ interface Concept {
   fuente: string;
   notasPersonales?: string;
 }
+
+// Función para cargar las configuraciones de voz del usuario
+const loadVoiceSettings = async () => {
+  try {
+    if (!auth.currentUser) {
+      throw new Error("Usuario no autenticado");
+    }
+    
+    // Obtener las configuraciones de voz del usuario desde Firestore
+    const userSettingsRef = doc(db, 'userSettings', auth.currentUser.uid);
+    const settingsSnap = await getDoc(userSettingsRef);
+    
+    if (settingsSnap.exists() && settingsSnap.data().voiceSettings) {
+      return settingsSnap.data().voiceSettings;
+    }
+    
+    // Si no hay configuraciones, devolver valores predeterminados
+    return {
+      autoRead: false,
+      voiceRate: 1,
+      voicePitch: 1
+    };
+  } catch (error) {
+    console.error("Error al cargar configuraciones de voz:", error);
+    // Devolver configuración predeterminada en caso de error
+    return {
+      autoRead: false,
+      voiceRate: 1,
+      voicePitch: 1
+    };
+  }
+};
 
 const ConceptDetail = () => {
   const { notebookId, conceptoId, index } = useParams<{ 
@@ -92,6 +124,31 @@ const ConceptDetail = () => {
         }
         
         setLoading(false);
+
+        // IMPORTANTE: Implementación mejorada de autoRead
+        if (auth.currentUser) {
+          try {
+            // Cargar configuraciones de voz del usuario
+            const voiceSettings = await loadVoiceSettings();
+            
+            // Verificar si autoRead está habilitado
+            if (voiceSettings.autoRead) {
+              // Esperar a que el componente se renderice completamente
+              setTimeout(() => {
+                // Obtener el botón específico de TextToSpeech para el concepto
+                const ttsButton = document.querySelector('.concept-definition .text-to-speech-button');
+                if (ttsButton instanceof HTMLButtonElement) {
+                  console.log("Auto-reproducción activada");
+                  ttsButton.click();
+                } else {
+                  console.warn("No se encontró el botón de reproducción automática");
+                }
+              }, 1000);
+            }
+          } catch (error) {
+            console.error("Error al cargar configuraciones de voz:", error);
+          }
+        }
       } catch (err) {
         console.error("Error fetching concept:", err);
         setError("Error al cargar el concepto");
@@ -316,6 +373,35 @@ const ConceptDetail = () => {
           setIsEditing(false);
           setIsEditingNotes(false);
           setEditedConcept(null);
+          
+          // IMPORTANTE: Implementación mejorada para autoRead al navegar
+          if (auth.currentUser) {
+            try {
+              const voiceSettings = await loadVoiceSettings();
+              
+              // Si autoRead está habilitado, activar la síntesis de voz
+              if (voiceSettings.autoRead) {
+                // Esperamos un poco para asegurarnos de que el componente se haya actualizado
+                setTimeout(() => {
+                  // Cancelar cualquier síntesis en curso primero
+                  if (window.speechSynthesis) {
+                    window.speechSynthesis.cancel();
+                  }
+                  
+                  // Buscar específicamente el botón de TextToSpeech dentro de la definición
+                  const ttsButton = document.querySelector('.concept-definition .text-to-speech-button');
+                  if (ttsButton instanceof HTMLButtonElement) {
+                    console.log("Auto-reproducción activada al navegar");
+                    ttsButton.click();
+                  } else {
+                    console.warn("No se encontró el botón de reproducción automática al navegar");
+                  }
+                }, 500);
+              }
+            } catch (error) {
+              console.error("Error al cargar configuraciones de voz para navegación:", error);
+            }
+          }
         }
       }
       
