@@ -195,11 +195,15 @@ const VoiceSettingsPage: React.FC = () => {
                 onChange={handleVoiceChange}
                 className="voice-select"
               >
-                {availableVoices.map((voice) => (
-                  <option key={voice.name} value={voice.name}>
-                    {voice.name} - {voice.lang} {voice.default ? '(Default)' : ''}
-                  </option>
-                ))}
+                {availableVoices
+                  .filter(voice => voice.lang.includes('es') && voice.name.includes('Google') && !voice.name.includes('Microsoft'))
+                  .map((voice) => (
+                    <option key={voice.name} value={voice.name}>
+                      {voice.lang === 'es-ES' ? 'Simón' : 
+                       voice.lang === 'es-US' ? 'Simona' : 
+                       voice.name} {voice.default ? '(Default)' : ''}
+                    </option>
+                  ))}
               </select>
             </div>
             
