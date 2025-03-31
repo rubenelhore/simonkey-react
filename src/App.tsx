@@ -16,7 +16,14 @@ import NotebookDetail from './pages/NotebookDetail';
 import ConceptDetail from './pages/ConceptDetail';
 import ExplainConceptPage from './pages/ExplainConceptPage';
 import SharedNotebook from './pages/SharedNotebook';
-import VoiceSettingsPage from './pages/VoiceSettingsPage'; // Nueva importación
+import VoiceSettingsPage from './pages/VoiceSettingsPage';
+// Nuevas importaciones
+import Onboarding from './components/Onboarding/Onboarding';
+import MobileNavigation from './components/Mobile/MobileNavigation';
+// Importamos también las nuevas páginas referenciadas en las rutas
+import StudyModePage from './pages/StudyModePage';
+import ProgressPage from './pages/ProgressPage';
+import ProfilePage from './pages/ProfilePage';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './services/firebase';
 
@@ -151,6 +158,7 @@ const AppContent: React.FC = () => {
 
   return (
     <UserContext.Provider value={{ user, setUser }}>
+      {user.isAuthenticated && <Onboarding />}
       <Routes>
         {/* Ruta principal: redirige a /notebooks si está autenticado */}
         <Route 
@@ -185,7 +193,26 @@ const AppContent: React.FC = () => {
           path="/settings/voice"
           element={user.isAuthenticated ? <VoiceSettingsPage /> : <Navigate to="/login" replace />}
         />
+        
+        {/* Nueva ruta para estudio */}
+        <Route
+          path="/study"
+          element={user.isAuthenticated ? <StudyModePage /> : <Navigate to="/login" replace />}
+        />
+        
+        {/* Nueva ruta para progreso */}
+        <Route
+          path="/progress"
+          element={user.isAuthenticated ? <ProgressPage /> : <Navigate to="/login" replace />}
+        />
+        
+        {/* Nueva ruta para perfil */}
+        <Route
+          path="/profile"
+          element={user.isAuthenticated ? <ProfilePage /> : <Navigate to="/login" replace />}
+        />
       </Routes>
+      {user.isAuthenticated && <MobileNavigation />}
     </UserContext.Provider>
   );
 };
