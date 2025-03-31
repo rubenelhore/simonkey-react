@@ -26,6 +26,7 @@ const VoiceSettingsPage: React.FC = () => {
       }
 
       try {
+        // Usamos la ruta adecuada - la misma que usa la función loadVoiceSettings en otros componentes
         const userSettingsRef = doc(db, 'users', auth.currentUser.uid, 'settings', 'voice');
         const settingsDoc = await getDoc(userSettingsRef);
         
@@ -39,6 +40,20 @@ const VoiceSettingsPage: React.FC = () => {
         }
       } catch (error) {
         console.error("Error loading voice settings:", error);
+        // También guardamos en localStorage como respaldo
+        const localSettings = localStorage.getItem('voiceSettings');
+        if (localSettings) {
+          try {
+            const data = JSON.parse(localSettings);
+            if (data.voiceName) setSelectedVoice(data.voiceName);
+            if (data.rate) setRate(data.rate);
+            if (data.pitch) setPitch(data.pitch);
+            if (data.volume) setVolume(data.volume);
+            if (data.autoRead !== undefined) setAutoRead(data.autoRead);
+          } catch (e) {
+            console.error("Error parsing local voice settings:", e);
+          }
+        }
       }
     };
 
@@ -56,13 +71,31 @@ const VoiceSettingsPage: React.FC = () => {
       const voices = window.speechSynthesis.getVoices();
       setAvailableVoices(voices);
       
-      // Si no hay voz seleccionada, intentar encontrar una voz en español
+      // Si no hay voz seleccionada, intentar encontrar voz de español de España (Simón)
       if (!selectedVoice) {
-        const spanishVoice = voices.find(voice => voice.lang.includes('es'));
-        if (spanishVoice) {
-          setSelectedVoice(spanishVoice.name);
-        } else if (voices.length > 0) {
-          setSelectedVoice(voices[0].name);
+        // Primero intentamos encontrar la voz de español de España (Google)
+        const simonVoice = voices.find(voice => 
+          voice.lang === 'es-ES' && 
+          voice.name.includes('Google') && 
+          !voice.name.includes('Microsoft')
+        );
+        
+        // Si encontramos la voz de Simón, la seleccionamos
+        if (simonVoice) {
+          setSelectedVoice(simonVoice.name);
+        } else {
+          // Como respaldo, buscamos cualquier voz en español
+          const spanishVoice = voices.find(voice => 
+            voice.lang.includes('es') && 
+            voice.name.includes('Google') && 
+            !voice.name.includes('Microsoft')
+          );
+          
+          if (spanishVoice) {
+            setSelectedVoice(spanishVoice.name);
+          } else if (voices.length > 0) {
+            setSelectedVoice(voices[0].name);
+          }
         }
       }
       
@@ -86,17 +119,24 @@ const VoiceSettingsPage: React.FC = () => {
 
     setIsSaving(true);
     
+    const voiceSettings = {
+      voiceName: selectedVoice,
+      rate,
+      pitch,
+      volume,
+      autoRead,
+      updatedAt: new Date()
+    };
+    
     try {
+      // Guardar en localStorage como respaldo
+      localStorage.setItem('voiceSettings', JSON.stringify(voiceSettings));
+      
+      // Usar la misma estructura que en ConceptDetail.tsx - loadVoiceSettings
       const userSettingsRef = doc(db, 'users', auth.currentUser.uid, 'settings', 'voice');
       
-      await setDoc(userSettingsRef, {
-        voiceName: selectedVoice,
-        rate,
-        pitch,
-        volume,
-        autoRead,
-        updatedAt: new Date()
-      });
+      // Guardar configuraciones
+      await setDoc(userSettingsRef, voiceSettings);
       
       setSaveSuccess(true);
       
@@ -106,7 +146,7 @@ const VoiceSettingsPage: React.FC = () => {
       }, 3000);
     } catch (error) {
       console.error("Error saving voice settings:", error);
-      alert("Error al guardar la configuración. Por favor, intenta de nuevo.");
+      alert("La configuración se guardó localmente, pero hubo un error al guardar en la nube. Tus ajustes funcionarán en este dispositivo.");
     } finally {
       setIsSaving(false);
     }
