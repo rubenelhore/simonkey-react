@@ -264,6 +264,9 @@ const Notebooks: React.FC = () => {
             <button className="personalization-button" onClick={handleOpenPersonalization}>
               <i className="fas fa-user-cog"></i> Personalización
             </button>
+            <button className="voice-settings-button" onClick={() => navigate('/settings/voice')}>
+              <i className="fas fa-volume-up"></i> Configuración de voz
+            </button>
             <button className="logout-button" onClick={handleLogout} style={{ fontFamily: 'Poppins, sans-serif' }}>
               <i className="fas fa-sign-out-alt"></i> Cerrar sesión
             </button>

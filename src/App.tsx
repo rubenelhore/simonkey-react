@@ -16,6 +16,7 @@ import NotebookDetail from './pages/NotebookDetail';
 import ConceptDetail from './pages/ConceptDetail';
 import ExplainConceptPage from './pages/ExplainConceptPage';
 import SharedNotebook from './pages/SharedNotebook';
+import VoiceSettingsPage from './pages/VoiceSettingsPage'; // Nueva importación
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from './services/firebase';
 
@@ -160,7 +161,7 @@ const AppContent: React.FC = () => {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         
-        {/* Rutas protegidas para notebooks y conceptos */}
+        {/* Rutas protegidas */}
         <Route
           path="/notebooks"
           element={user.isAuthenticated ? <Notebooks /> : <Navigate to="/login" replace />}
@@ -178,6 +179,12 @@ const AppContent: React.FC = () => {
           element={user.isAuthenticated ? <ExplainConceptPage /> : <Navigate to="/login" replace />}
         />
         <Route path="/shared/:shareId" element={<SharedNotebook />} />
+        
+        {/* Nueva ruta para configuración de voz */}
+        <Route
+          path="/settings/voice"
+          element={user.isAuthenticated ? <VoiceSettingsPage /> : <Navigate to="/login" replace />}
+        />
       </Routes>
     </UserContext.Provider>
   );
