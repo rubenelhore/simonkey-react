@@ -3,8 +3,31 @@ import React, { useState, useEffect } from 'react';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../../services/firebase';
 
+// First, define an interface for your streak data
+interface StreakData {
+  days: {
+    monday: boolean;
+    tuesday: boolean;
+    wednesday: boolean;
+    thursday: boolean;
+    friday: boolean;
+    saturday: boolean;
+    sunday: boolean;
+    [key: string]: boolean;  // For index access with dayOfWeek
+  };
+  currentStreak: number;
+  lastVisit: Date | null;  // Allow both Date and null
+  weeklyGoal: number;
+}
+
+// Define a type for days of the week
+type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+
+// Create the array with the specific type
+const weekDays: DayOfWeek[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
 const StudyStreak = () => {
-  const [streak, setStreak] = useState({
+  const [streak, setStreak] = useState<StreakData>({
     days: {
       monday: false,
       tuesday: false,
@@ -45,9 +68,9 @@ const StudyStreak = () => {
         };
         
         const dayInSpanish = today.toLocaleDateString('es-ES', { weekday: 'long' }).toLowerCase();
-        const dayOfWeek = dayMapping[dayInSpanish] || 'monday'; // Fallback a lunes si hay error
+        const dayOfWeek = dayMapping[dayInSpanish as keyof typeof dayMapping];
         
-        let streakData = {
+        let streakData: StreakData = {
           days: {
             monday: false,
             tuesday: false,
@@ -142,13 +165,9 @@ const StudyStreak = () => {
       </div>
       
       <div className="streak-calendar">
-        {weekDays.map((day) => (
-          <div 
-            key={day.key} 
-            className={`day-indicator ${streak.days[day.key] ? 'active' : ''}`}
-          >
-            <span className="day-label">{day.label}</span>
-            {streak.days[day.key] ? <i className="fas fa-check"></i> : null}
+        {weekDays.map((day: DayOfWeek) => (
+          <div key={day} className={`day-circle ${streak.days[day] ? 'completed' : ''}`}>
+            {day.charAt(0).toUpperCase()}
           </div>
         ))}
       </div>

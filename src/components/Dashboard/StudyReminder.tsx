@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db, auth } from '../../services/firebase';
 
+type DayOfWeek = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
+
 const StudyReminder = () => {
   const [reminderEnabled, setReminderEnabled] = useState(false);
   const [days, setDays] = useState({
@@ -48,14 +50,14 @@ const StudyReminder = () => {
     fetchReminderSettings();
   }, []);
 
-  const toggleDay = (day) => {
+  const toggleDay = (day: DayOfWeek) => {
     setDays({
       ...days,
       [day]: !days[day]
     });
   };
 
-  const handleTimeChange = (e) => {
+  const handleTimeChange = (e: { target: { value: React.SetStateAction<string>; }; }) => {
     setReminderTime(e.target.value);
   };
 
@@ -143,8 +145,8 @@ const StudyReminder = () => {
               ].map(day => (
                 <button
                   key={day.key}
-                  className={`day-button ${days[day.key] ? 'active' : ''}`}
-                  onClick={() => toggleDay(day.key)}
+                  className={`day-button ${days[day.key as keyof typeof days] ? 'active' : ''}`}
+                  onClick={() => toggleDay(day.key as DayOfWeek)}
                   disabled={!reminderEnabled}
                 >
                   {day.label}

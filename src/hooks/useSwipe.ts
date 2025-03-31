@@ -1,36 +1,47 @@
-// src/hooks/useSwipe.js
-import { useState, useEffect } from 'react';
+// src/hooks/useSwipe.ts
+import { useState, useEffect, useCallback } from 'react';
+import { TouchEvent } from 'react';
+
+// Create an interface for the options parameter
+interface SwipeOptions {
+  threshold?: number;
+  timeout?: number;
+  // Add any other options your hook might use
+}
+
+interface TouchPosition {
+  x: number;
+  y: number;
+}
 
 /**
  * Custom hook para detectar gestos de swipe en dispositivos táctiles
- * @param {object} options - Opciones de configuración
- * @param {number} options.threshold - Distancia mínima para considerar un swipe válido (en px)
- * @param {number} options.timeout - Tiempo máximo para realizar el swipe (en ms)
+ * @param {SwipeOptions} options - Opciones de configuración
  * @returns {object} - Objeto con funciones de detección y estados de swipe
  */
-const useSwipe = (options = {}) => {
+export function useSwipe(options: SwipeOptions = {}) {
   const { threshold = 50, timeout = 300 } = options;
   
-  const [touchStart, setTouchStart] = useState(null);
-  const [touchEnd, setTouchEnd] = useState(null);
-  const [touchStartTime, setTouchStartTime] = useState(null);
-  const [swipeDirection, setSwipeDirection] = useState(null);
+  const [touchStart, setTouchStart] = useState<TouchPosition | null>(null);
+  const [touchEnd, setTouchEnd] = useState<TouchPosition | null>(null);
+  const [touchStartTime, setTouchStartTime] = useState<number | null>(null);
+  const [swipeDirection, setSwipeDirection] = useState<string | null>(null);
   const [swiping, setSwiping] = useState(false);
 
   // Resetea el estado de swipe
-  const resetSwipe = () => {
+  const resetSwipe = useCallback(() => {
     setTouchStart(null);
     setTouchEnd(null);
     setTouchStartTime(null);
     setSwipeDirection(null);
     setSwiping(false);
-  };
+  }, []);
 
   // Detecta la dirección del swipe
   useEffect(() => {
     if (!touchStart || !touchEnd) return;
     
-    const timeElapsed = Date.now() - touchStartTime;
+    const timeElapsed = Date.now() - touchStartTime!;
     
     // Si se excedió el tiempo, ignorar el swipe
     if (timeElapsed > timeout) {
@@ -39,6 +50,8 @@ const useSwipe = (options = {}) => {
     }
     
     // Calcular distancias
+    if (!touchStart || !touchEnd) return;
+
     const distanceX = touchEnd.x - touchStart.x;
     const distanceY = touchEnd.y - touchStart.y;
     const isHorizontal = Math.abs(distanceX) > Math.abs(distanceY);
@@ -54,23 +67,23 @@ const useSwipe = (options = {}) => {
     
     setSwipeDirection(direction);
     setSwiping(false);
-  }, [touchStart, touchEnd, touchStartTime, threshold, timeout]);
+  }, [touchStart, touchEnd, touchStartTime, threshold, timeout, resetSwipe]);
 
   // Handlers para eventos táctiles
-  const onTouchStart = (e) => {
+  const onTouchStart = (e: TouchEvent) => {
     const touch = e.touches[0];
     setTouchStart({ x: touch.clientX, y: touch.clientY });
     setTouchStartTime(Date.now());
     setSwiping(true);
   };
 
-  const onTouchMove = (e) => {
+  const onTouchMove = (e: TouchEvent) => {
     if (!touchStart) return;
     const touch = e.touches[0];
     setTouchEnd({ x: touch.clientX, y: touch.clientY });
   };
 
-  const onTouchEnd = () => {
+  const onTouchEnd = (e: TouchEvent) => {
     if (!touchStart || !touchEnd) {
       resetSwipe();
       return;
@@ -87,11 +100,13 @@ const useSwipe = (options = {}) => {
   };
 
   return {
-    swipeHandlers,
     swipeDirection,
     swiping,
-    resetSwipe
+    resetSwipe,
+    swipeHandlers: {
+      onTouchStart,
+      onTouchMove,
+      onTouchEnd
+    }
   };
-};
-
-export default useSwipe;
+}

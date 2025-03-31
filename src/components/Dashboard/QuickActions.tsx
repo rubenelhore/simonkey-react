@@ -4,8 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
 import { db, auth } from '../../services/firebase';
 
+// Define an interface for your notebook type
+interface Notebook {
+  id: string;
+  title: string; // Changed from 'any' for better type safety
+  color: string; // Changed from 'any' for better type safety
+}
+
+// Then use it when initializing state
+const [recentNotebooks, setRecentNotebooks] = useState<Notebook[]>([]);
+
 const QuickActions = () => {
-  const [recentNotebooks, setRecentNotebooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -47,7 +56,7 @@ const QuickActions = () => {
     navigate('/notebooks', { state: { showCreateModal: true } });
   };
 
-  const handleContinueStudying = (notebookId) => {
+  const handleContinueStudying = (notebookId: string) => {
     navigate(`/notebooks/${notebookId}`);
   };
 

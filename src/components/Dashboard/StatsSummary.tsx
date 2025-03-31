@@ -1,13 +1,26 @@
 // src/components/Dashboard/StatsSummary.jsx
 import React from 'react';
 
-const StatsSummary = ({ stats }) => {
+// Define an interface for the stats prop
+interface StatsSummaryProps {
+  stats: {
+    totalConcepts?: number;
+    totalNotebooks?: number;
+    studyTimeMinutes?: number;
+    masteredConcepts?: number;
+    studiedToday?: number;
+    // Add more properties as needed
+  };
+}
+
+const StatsSummary = ({ stats }: StatsSummaryProps) => {
   const { totalConcepts, totalNotebooks, studyTimeMinutes, masteredConcepts } = stats;
   
   // Formatear tiempo de estudio en horas y minutos
   const formatStudyTime = () => {
-    const hours = Math.floor(studyTimeMinutes / 60);
-    const minutes = studyTimeMinutes % 60;
+    const totalMinutes = studyTimeMinutes ?? 0;  // Usar 0 si studyTimeMinutes es undefined
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
     
     if (hours > 0) {
       return `${hours}h ${minutes > 0 ? `${minutes}m` : ''}`;
@@ -17,9 +30,12 @@ const StatsSummary = ({ stats }) => {
   };
   
   // Calcular porcentaje de dominio
-  const masteryPercentage = totalConcepts > 0 
-    ? Math.round((masteredConcepts / totalConcepts) * 100) 
-    : 0;
+  const masteryPercentage = (() => {
+    const concepts = totalConcepts ?? 0;
+    const mastered = masteredConcepts ?? 0;
+    
+    return concepts > 0 ? Math.round((mastered / concepts) * 100) : 0;
+  })();
   
   return (
     <div className="stats-summary">

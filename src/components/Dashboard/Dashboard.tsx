@@ -11,14 +11,35 @@ import StudyStreak from './StudyStreak';
 import QuickActions from './QuickActions';
 import StudyReminder from './StudyReminder';
 
+// Add this interface definition and export
+export interface Activity {
+  title: any;
+  id: string;
+  type: string;
+  timestamp: any; // or use a more specific Firebase timestamp type
+  // Add other properties you need
+  notebookId?: string;
+  notebookTitle?: string;
+  conceptId?: string;
+  conceptTitle?: string;
+  // Any other fields your activities have
+}
+
+interface Stats {
+  totalConcepts: number;
+  totalNotebooks: number;
+  studyTimeMinutes: number;
+  masteredConcepts: number;
+}
+
 const Dashboard = () => {
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<Stats>({
     totalConcepts: 0,
     totalNotebooks: 0,
     studyTimeMinutes: 0,
     masteredConcepts: 0
   });
-  const [recentActivity, setRecentActivity] = useState([]);
+  const [recentActivity, setRecentActivity] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -49,7 +70,7 @@ const Dashboard = () => {
         let masteredCount = 0;
         
         conceptsSnapshot.docs.forEach(doc => {
-          const data = doc.data();
+          const data = doc.data() as { conceptos?: any[] };
           if (data.conceptos && Array.isArray(data.conceptos)) {
             conceptsCount += data.conceptos.length;
             
@@ -74,43 +95,30 @@ const Dashboard = () => {
         });
         
         // Obtener actividad reciente
-        const activityQuery = query(
-          collection(db, 'activity'),
-          where('userId', '==', userId),
-          orderBy('timestamp', 'desc'),
-          limit(5)
-        );
-        
         try {
+          const activityQuery = query(
+            collection(db, 'activity'),
+            where('userId', '==', userId),
+            orderBy('timestamp', 'desc'),
+            limit(5)
+          );
+          
           const activitySnapshot = await getDocs(activityQuery);
-          const activityData = activitySnapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-          }));
-          setRecentActivity(activityData);
+          
+          if (!activitySnapshot.empty) {
+            const activityData = activitySnapshot.docs.map(doc => ({
+              id: doc.id,
+              ...doc.data()
+            })) as Activity[];
+            setRecentActivity(activityData);
+          } else {
+            // No recent activities found
+            setRecentActivity([]);
+          }
         } catch (error) {
-          // Si no existe la colección activity, creamos datos de ejemplo
-          console.log("No se encontró actividad reciente, usando datos de ejemplo");
-          setRecentActivity([
-            {
-              id: '1',
-              type: 'notebook_created',
-              title: 'Historia del Arte',
-              timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000)
-            },
-            {
-              id: '2',
-              type: 'concept_studied',
-              title: 'Renacimiento',
-              timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000)
-            },
-            {
-              id: '3',
-              type: 'concept_added',
-              title: 'Impresionismo',
-              timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000)
-            }
-          ]);
+          console.error("Error loading dashboard data:", error);
+          // Set example data or handle the error appropriately
+          setRecentActivity([]);
         }
         
         setLoading(false);

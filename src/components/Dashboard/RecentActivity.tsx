@@ -1,9 +1,15 @@
-// src/components/Dashboard/RecentActivity.jsx
+// src/components/Dashboard/RecentActivity.tsx
 import React from 'react';
+// Importar la interfaz Activity desde Dashboard
+import { Activity } from '../Dashboard/Dashboard';
 
-const RecentActivity = ({ activities }) => {
+interface RecentActivityProps {
+  activities: Activity[]; 
+}
+
+const RecentActivity = ({ activities }: RecentActivityProps) => {
   // Función para formatear fecha/hora
-  const formatTimestamp = (timestamp) => {
+  const formatTimestamp = (timestamp: { toDate: () => any; }) => {
     if (!timestamp) return '';
     
     const date = timestamp instanceof Date ? timestamp : timestamp.toDate();
@@ -28,7 +34,7 @@ const RecentActivity = ({ activities }) => {
   };
   
   // Función para obtener ícono según tipo de actividad
-  const getActivityIcon = (type) => {
+  const getActivityIcon = (type: string) => {
     switch (type) {
       case 'notebook_created':
         return <i className="fas fa-plus-circle"></i>;
@@ -46,7 +52,7 @@ const RecentActivity = ({ activities }) => {
   };
   
   // Función para obtener texto según tipo de actividad
-  const getActivityText = (activity) => {
+  const getActivityText = (activity: Activity) => {
     switch (activity.type) {
       case 'notebook_created':
         return `Creaste un nuevo cuaderno "${activity.title}"`;
@@ -64,7 +70,7 @@ const RecentActivity = ({ activities }) => {
   };
   
   // Función para obtener color según tipo de actividad
-  const getActivityColor = (type) => {
+  const getActivityColor = (type: string) => {
     switch (type) {
       case 'notebook_created':
         return '#4CAF50';

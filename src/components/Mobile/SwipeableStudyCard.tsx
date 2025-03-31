@@ -1,15 +1,32 @@
 // src/components/Mobile/SwipeableStudyCard.jsx
 import React, { useState, useEffect } from 'react';
-import useSwipe from '../../hooks/useSwipe';
+import { useSwipe } from '../../hooks/useSwipe';
 import './SwipeableStudyCard.css';
 import TextToSpeech from '../TextToSpeech';
 
-const SwipeableStudyCard = ({ concept, onComplete, onLater, isLast }) => {
+// Define interfaces for component props
+interface Concept {
+  id: string;
+  término: string;
+  definición: string;
+  fuente: string;
+  docId?: string;
+  index?: number;
+}
+
+interface SwipeableStudyCardProps {
+  concept: Concept;
+  onComplete: (conceptId: string, confidence: string) => void;
+  onLater: (conceptId: string) => void;
+  isLast: boolean;
+}
+
+const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({ concept, onComplete, onLater, isLast }) => {
   const [flipped, setFlipped] = useState(false);
-  const [confidence, setConfidence] = useState(null);
-  const [exitDirection, setExitDirection] = useState(null);
+  const [confidence, setConfidence] = useState<string | null>(null);
+  const [exitDirection, setExitDirection] = useState<string | null>(null);
   const [isExiting, setIsExiting] = useState(false);
-  const [touchStartY, setTouchStartY] = useState(null);
+  const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [dragOffsetY, setDragOffsetY] = useState(0);
   
   // Configurar hook de swipe
@@ -27,7 +44,7 @@ const SwipeableStudyCard = ({ concept, onComplete, onLater, isLast }) => {
   }, [swipeDirection, resetSwipe]);
   
   // Manejar dirección de swipe
-  const handleSwipe = (direction) => {
+  const handleSwipe = (direction: string) => {
     if (direction === 'left' || direction === 'right') {
       setExitDirection(direction);
       setIsExiting(true);
@@ -48,7 +65,7 @@ const SwipeableStudyCard = ({ concept, onComplete, onLater, isLast }) => {
   };
   
   // Manejar tap para voltear la tarjeta
-  const handleCardTap = (e) => {
+  const handleCardTap = (e: React.MouseEvent) => {
     // Solo considerar taps, no swipes
     if (!swiping) {
       setFlipped(!flipped);
@@ -56,11 +73,11 @@ const SwipeableStudyCard = ({ concept, onComplete, onLater, isLast }) => {
   };
   
   // Manejar drag vertical para voltear tarjeta
-  const handleTouchStart = (e) => {
+  const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartY(e.touches[0].clientY);
   };
   
-  const handleTouchMove = (e) => {
+  const handleTouchMove = (e: React.TouchEvent) => {
     if (touchStartY === null) return;
     
     const currentY = e.touches[0].clientY;
@@ -73,7 +90,7 @@ const SwipeableStudyCard = ({ concept, onComplete, onLater, isLast }) => {
     setDragOffsetY(drag);
   };
   
-  const handleTouchEnd = () => {
+  const handleTouchEnd = (e: React.TouchEvent<Element>) => {
     // Si el arrastre es significativo, voltear la tarjeta
     if (Math.abs(dragOffsetY) > 50) {
       setFlipped(!flipped);
@@ -86,15 +103,15 @@ const SwipeableStudyCard = ({ concept, onComplete, onLater, isLast }) => {
   // Combinar handlers de swipe y drag
   const handlers = {
     ...swipeHandlers,
-    onTouchStart: (e) => {
+    onTouchStart: (e: React.TouchEvent) => {
       swipeHandlers.onTouchStart(e);
       handleTouchStart(e);
     },
-    onTouchMove: (e) => {
+    onTouchMove: (e: React.TouchEvent) => {
       swipeHandlers.onTouchMove(e);
       handleTouchMove(e);
     },
-    onTouchEnd: (e) => {
+    onTouchEnd: (e: React.TouchEvent) => {
       swipeHandlers.onTouchEnd(e);
       handleTouchEnd(e);
     },
@@ -103,7 +120,7 @@ const SwipeableStudyCard = ({ concept, onComplete, onLater, isLast }) => {
   
   // Calcular estilos dinámicos
   const getCardStyle = () => {
-    let style = {
+    let style: React.CSSProperties = {
       transform: `perspective(1000px) rotateX(${dragOffsetY * 0.2}deg)`
     };
     
