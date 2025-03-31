@@ -4,6 +4,8 @@ import { db } from '../services/firebase';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import '../styles/ConceptDetail.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import TextToSpeech from '../components/TextToSpeech';
+import '../styles/TextToSpeech.css';
 
 interface Concept {
   término: string;
@@ -398,6 +400,7 @@ const ConceptDetail = () => {
                 <div className="concept-definition">
                   <h3>Definición:</h3>
                   <p>{concepto.definición}</p>
+                  <TextToSpeech text={concepto.definición} buttonClassName="concept-tts-button" />
                 </div>
                 <div className="concept-source">
                   <h3>Fuente:</h3>
@@ -531,6 +534,7 @@ const ConceptDetail = () => {
                     {notasPersonales.split('\n').map((line, i) => (
                       <p key={i}>{line}</p>
                     ))}
+                    <TextToSpeech text={notasPersonales} buttonClassName="notes-tts-button" />
                   </div>
                 ) : (
                   <div className="empty-notes">

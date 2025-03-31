@@ -1,301 +1,305 @@
-/* Estilos para la página de configuración de voz */
+/* Estilos actualizados para la página de configuración de voz */
 .voice-settings-container {
-    min-height: 100vh;
-    background-color: var(--background-color, #f5f7fa);
-    color: var(--text-color, #333);
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .voice-settings-header {
-    background-color: var(--primary-color, #4F46E5);
-    color: white;
-    padding: 1rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: sticky;
-    top: 0;
-    z-index: 10;
-  }
-  
-  .voice-settings-header .header-content {
-    max-width: 1000px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    width: 100%;
-    position: relative;
-  }
-  
+  min-height: 100vh; /* Usar min-height en lugar de height fija */
+  background-color: var(--background-color, #f5f7fa);
+  color: var(--text-color, #333);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto; /* Permitir scroll vertical */
+}
+
+.voice-settings-header {
+  background-color: var(--primary-color, #4F46E5);
+  color: white;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky; /* Mantener el encabezado pegado mientras se desplaza */
+  top: 0;
+  z-index: 10;
+}
+
+.voice-settings-header .header-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+.voice-settings-header h1 {
+  flex-grow: 1;
+  text-align: center;
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.voice-settings-header .back-button {
+  background-color: white;
+  color: var(--primary-color, #4F46E5);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.voice-settings-header .back-button:hover {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.voice-settings-main {
+  flex: 1;
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+  overflow-y: visible; /* Asegurar que pueda hacer scroll */
+}
+
+.settings-card {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  padding: 2rem;
+  margin-bottom: 2rem; /* Añadir margen inferior */
+  overflow: visible; /* Asegurar que no corte el contenido */
+}
+
+.settings-section {
+  margin-bottom: 2.5rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid #eee;
+}
+
+.settings-section:last-of-type {
+  border-bottom: none;
+  margin-bottom: 1.5rem;
+  padding-bottom: 0;
+}
+
+.settings-section h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.5rem;
+  color: var(--primary-color, #4F46E5);
+}
+
+.section-description {
+  color: #6c757d;
+  margin-bottom: 1.5rem;
+  font-size: 0.95rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #495057;
+}
+
+.voice-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: white;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-position: right 0.75rem center;
+  background-size: 1rem;
+  background-repeat: no-repeat;
+}
+
+.range-input {
+  width: 100%;
+  height: 6px;
+  appearance: none;
+  border-radius: 3px;
+  background-color: #e9ecef;
+  margin-bottom: 0.5rem;
+}
+
+.range-input::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: var(--primary-color, #4F46E5);
+  cursor: pointer;
+}
+
+.range-input::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: var(--primary-color, #4F46E5);
+  cursor: pointer;
+  border: none;
+}
+
+.range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.checkbox-group label {
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+.checkbox-input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--primary-color, #4F46E5);
+}
+
+.test-text-input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 1rem;
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.test-voice-button {
+  background-color: var(--primary-color, #4F46E5);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.test-voice-button:hover {
+  background-color: #4338ca;
+}
+
+.settings-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.save-success-message {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 0.75rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.cancel-button,
+.save-button {
+  padding: 0.75rem 1.25rem;
+  border-radius: 4px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.cancel-button {
+  background-color: white;
+  border: 1px solid #6c757d;
+  color: #6c757d;
+}
+
+.save-button {
+  background-color: var(--primary-color, #4F46E5);
+  border: none;
+  color: white;
+}
+
+.cancel-button:hover {
+  background-color: #f8f9fa;
+}
+
+.save-button:hover {
+  background-color: #4338ca;
+}
+
+.save-button:disabled {
+  background-color: #a5a1f7;
+  cursor: not-allowed;
+}
+
+.spinner-small {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Estilos responsive */
+@media (max-width: 768px) {
   .voice-settings-header h1 {
-    flex-grow: 1;
-    text-align: center;
-    margin: 0;
-    font-size: 1.5rem;
-  }
-  
-  .voice-settings-header .back-button {
-    background-color: white;
-    color: var(--primary-color, #4F46E5);
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  
-  .voice-settings-header .back-button:hover {
-    background-color: rgba(255, 255, 255, 0.9);
-  }
-  
-  .voice-settings-main {
-    flex: 1;
-    max-width: 1000px;
-    margin: 2rem auto;
-    padding: 0 1rem;
+    font-size: 1.25rem;
   }
   
   .settings-card {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    padding: 2rem;
-  }
-  
-  .settings-section {
-    margin-bottom: 2.5rem;
-    padding-bottom: 2rem;
-    border-bottom: 1px solid #eee;
-  }
-  
-  .settings-section:last-of-type {
-    border-bottom: none;
-    margin-bottom: 1.5rem;
-    padding-bottom: 0;
+    padding: 1.5rem;
   }
   
   .settings-section h2 {
-    font-size: 1.25rem;
-    margin-bottom: 0.5rem;
-    color: var(--primary-color, #4F46E5);
-  }
-  
-  .section-description {
-    color: #6c757d;
-    margin-bottom: 1.5rem;
-    font-size: 0.95rem;
-  }
-  
-  .form-group {
-    margin-bottom: 1.5rem;
-  }
-  
-  .form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-    color: #495057;
-  }
-  
-  .voice-select {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: 1rem;
-    background-color: white;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23333' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-position: right 0.75rem center;
-    background-size: 1rem;
-    background-repeat: no-repeat;
-  }
-  
-  .range-input {
-    width: 100%;
-    height: 6px;
-    appearance: none;
-    border-radius: 3px;
-    background-color: #e9ecef;
-    margin-bottom: 0.5rem;
-  }
-  
-  .range-input::-webkit-slider-thumb {
-    appearance: none;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background-color: var(--primary-color, #4F46E5);
-    cursor: pointer;
-  }
-  
-  .range-input::-moz-range-thumb {
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
-    background-color: var(--primary-color, #4F46E5);
-    cursor: pointer;
-    border: none;
-  }
-  
-  .range-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.85rem;
-    color: #6c757d;
-  }
-  
-  .checkbox-group {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-  
-  .checkbox-group label {
-    margin-bottom: 0;
-    cursor: pointer;
-  }
-  
-  .checkbox-input {
-    width: 18px;
-    height: 18px;
-    cursor: pointer;
-    accent-color: var(--primary-color, #4F46E5);
-  }
-  
-  .test-text-input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-    font-size: 1rem;
-    resize: vertical;
-    min-height: 80px;
-    font-family: inherit;
-  }
-  
-  .test-voice-button {
-    background-color: var(--primary-color, #4F46E5);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 0.75rem 1.25rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-  
-  .test-voice-button:hover {
-    background-color: #4338ca;
-  }
-  
-  .settings-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .save-success-message {
-    background-color: #d4edda;
-    color: #155724;
-    padding: 0.75rem;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    animation: fadeIn 0.3s ease-in;
-  }
-  
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    font-size: 1.1rem;
   }
   
   .action-buttons {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
+    flex-direction: column-reverse;
+    gap: 0.75rem;
   }
   
   .cancel-button,
   .save-button {
-    padding: 0.75rem 1.25rem;
-    border-radius: 4px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    width: 100%;
+    justify-content: center;
   }
-  
-  .cancel-button {
-    background-color: white;
-    border: 1px solid #6c757d;
-    color: #6c757d;
-  }
-  
-  .save-button {
-    background-color: var(--primary-color, #4F46E5);
-    border: none;
-    color: white;
-  }
-  
-  .cancel-button:hover {
-    background-color: #f8f9fa;
-  }
-  
-  .save-button:hover {
-    background-color: #4338ca;
-  }
-  
-  .save-button:disabled {
-    background-color: #a5a1f7;
-    cursor: not-allowed;
-  }
-  
-  .spinner-small {
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-top: 2px solid white;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-  
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-  }
-  
-  /* Estilos responsive */
-  @media (max-width: 768px) {
-    .voice-settings-header h1 {
-      font-size: 1.25rem;
-    }
-    
-    .settings-card {
-      padding: 1.5rem;
-    }
-    
-    .settings-section h2 {
-      font-size: 1.1rem;
-    }
-    
-    .action-buttons {
-      flex-direction: column-reverse;
-      gap: 0.75rem;
-    }
-    
-    .cancel-button,
-    .save-button {
-      width: 100%;
-      justify-content: center;
-    }
-  }
+}
