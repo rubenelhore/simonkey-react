@@ -15,7 +15,6 @@ import {
 } from 'firebase/firestore';
 import { GoogleGenerativeAI} from '@google/generative-ai';
 import ToolsMenu from '../components/ToolsMenu';
-import EvaluationMenu from '../components/EvaluationMenu';
 import '../styles/NotebookDetail.css';
 import ReactDOM from 'react-dom';
 
@@ -273,7 +272,7 @@ const NotebookDetail = () => {
       let conceptosExtraidos: Concept[] = [];
       try {
         // Find JSON in the response
-        const jsonMatch = respuesta.match(/\[.*\]/s);
+        const jsonMatch = respuesta.match(/\[.*\]/);
         if (jsonMatch) {
           conceptosExtraidos = JSON.parse(jsonMatch[0]);
         } else {
@@ -653,7 +652,6 @@ const NotebookDetail = () => {
         <div className="sidebar-container">
           {/* Barra lateral con menús */}
           <ToolsMenu notebookId={id} />
-          <EvaluationMenu notebookId={id} />
         </div>
 
         <section className="concepts-section">

@@ -15,7 +15,7 @@ const ToolsMenu: React.FC<ToolsMenuProps> = ({ notebookId }) => {
 
   return (
     <aside className="tools-menu-section">
-      <h2 style={{ color: 'var(--notebook-color)' }}>Herramientas de estudio</h2>
+      <h2 style={{ color: 'var(--notebook-color)' }}>Herramientas de Aprendizaje</h2>
       <button 
         onClick={toggleMenu} 
         className={`tools-toggle-button ${isOpen ? 'active' : ''}`}

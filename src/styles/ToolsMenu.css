@@ -98,22 +98,3 @@
     font-size: 0.95rem;
   }
 }
-
-/* Add to ToolsMenu.css */
-.evaluation-menu-section.tools-menu-section {
-  /* Ensure same styling as tools-menu-section */
-  width: 100%;
-  margin-top: 20px;
-  padding: 15px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.evaluation-menu-section .tools-container,
-.evaluation-menu-section .category-items,
-.evaluation-menu-section .tool-link {
-  /* Ensure same styling as in ToolsMenu */
-  display: flex;
-  flex-direction: column;
-}

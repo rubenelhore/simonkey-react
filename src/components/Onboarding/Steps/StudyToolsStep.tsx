@@ -12,13 +12,13 @@ interface StudyToolsStepProps {
 const StudyToolsStep: React.FC<StudyToolsStepProps> = ({ onFinish, onPrev }) => {
   return (
     <div className="flex flex-col items-center justify-center gap-6 text-center px-4 py-8">
-      <h2 className="text-2xl font-bold text-indigo-600">Herramientas de Estudio</h2>
+      <h2 className="text-2xl font-bold text-indigo-600">Herramientas de Aprendizaje</h2>
       
       <p className="text-lg text-gray-700 max-w-md">
         Simonkey te ofrece múltiples formas de estudiar y memorizar tus conceptos con técnicas diseñadas para un aprendizaje efectivo.
       </p>
       
-      {/* Visualización de herramientas de estudio */}
+      {/* Visualización de herramientas de aprendizaje */}
       <div className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
         <div className="bg-white rounded-lg shadow-sm p-4 border border-gray-200 hover:border-indigo-300 hover:shadow-md transition-all">
           <div className="flex flex-col items-center justify-center h-full">

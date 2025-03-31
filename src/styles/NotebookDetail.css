@@ -274,15 +274,6 @@
   color: var(--notebook-color);
 }
 
-/* Agregamos un estilo específico para evaluation-menu-section h2 */
-.evaluation-menu-section h2 {
-  background-color: var(--card-background);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  padding: 1rem;
-  color: var(--notebook-color);
-}
-
 .concepts-section {
   background-color: var(--card-background);
   border-radius: 8px;

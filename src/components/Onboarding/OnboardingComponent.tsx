@@ -114,38 +114,33 @@ const Onboarding: React.FC<OnboardingProps> = (props) => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <div className="flex-1 flex items-center justify-center">
-        <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg overflow-hidden my-8">
-          <ProgressIndicator />
+    <div className="onboarding-container">
+      <div className="onboarding-content">
+        <ProgressIndicator />
+        
+        <div className="step-content">
+          {steps[currentStep]}
+        </div>
+        
+        <div className="onboarding-actions">
+          {currentStep > 0 && (
+            <button onClick={handlePrev} className="back-button">
+              <i className="fas fa-arrow-left"></i> Atrás
+            </button>
+          )}
           
-          <div className="step-content">
-            {steps[currentStep]}
-          </div>
-          
-          <div className="onboarding-actions">
-            {currentStep > 0 && (
-              <button onClick={handlePrev} className="back-button">
-                <i className="fas fa-arrow-left"></i> Atrás
-              </button>
-            )}
+          <div className="right-actions">
+            <button onClick={handleSkip} className="skip-button">
+              Saltar
+            </button>
             
-            <div className="right-actions">
-              <button onClick={handleSkip} className="skip-button">
-                Saltar
-              </button>
-              
-              <button onClick={handleNext} className="next-button">
-                {currentStep === 3 ? 'Comenzar' : 'Siguiente'} 
-                {currentStep < 3 && <i className="fas fa-arrow-right"></i>}
-              </button>
-            </div>
+            <button onClick={handleNext} className="next-button">
+              {currentStep === 3 ? 'Comenzar' : 'Siguiente'} 
+              {currentStep < 3 && <i className="fas fa-arrow-right"></i>}
+            </button>
           </div>
         </div>
       </div>
-      <footer className="py-4 text-center text-gray-500 text-sm">
-        © {new Date().getFullYear()} Simonkey - Tu estudio, tu ritmo
-      </footer>
     </div>
   );
 };

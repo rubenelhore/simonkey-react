@@ -51,12 +51,6 @@ const MobileNavigation = () => {
         <span>Estudiar</span>
       </NavLink>
       
-      <div className="nav-item create-button">
-        <button onClick={() => window.location.href = '/notebooks?create=true'}>
-          <i className="fas fa-plus"></i>
-        </button>
-      </div>
-      
       <NavLink to="/progress" className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}>
         <i className="fas fa-chart-line"></i>
         <span>Progreso</span>
