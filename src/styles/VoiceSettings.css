@@ -1,11 +1,24 @@
-/* Estilos actualizados para la página de configuración de voz */
+/* Estilos corregidos para la página de configuración de voz */
+/* Asegurar scroll en todos los dispositivos */
+html, body, #root {
+  height: auto !important; 
+  min-height: 100%;
+  overflow: visible !important;
+  overflow-y: auto !important;
+  position: static !important;
+}
+
 .voice-settings-container {
-  min-height: 100vh; /* Usar min-height en lugar de height fija */
+  min-height: 100vh;
   background-color: var(--background-color, #f5f7fa);
   color: var(--text-color, #333);
-  display: flex;
-  flex-direction: column;
-  /* Se elimina overflow-y: auto para evitar conflictos de scroll */
+  display: block !important; /* Cambiar de flex a block para evitar problemas */
+  /* IMPORTANTE: Permitir scroll en la página completa */
+  overflow-y: auto !important;
+  position: relative;
+  /* Asegurarnos que el contenedor principal ocupe todo el espacio disponible */
+  width: 100%;
+  height: auto !important; /* Permitir que crezca según el contenido */
 }
 
 .voice-settings-header {
@@ -16,6 +29,7 @@
   position: sticky; /* Mantener el encabezado pegado mientras se desplaza */
   top: 0;
   z-index: 10;
+  width: 100%;
 }
 
 .voice-settings-header .header-content {
@@ -53,11 +67,15 @@
 }
 
 .voice-settings-main {
-  flex: 1;
   max-width: 1000px;
   margin: 2rem auto;
   padding: 0 1rem;
-  /* Se elimina overflow-y: visible para permitir scroll natural */
+  /* IMPORTANTE: Asegurar que el contenido principal pueda ser desplazable */
+  overflow-y: visible !important;
+  width: 100%;
+  /* Añadir padding bottom para asegurar que los botones de guardado sean accesibles */
+  padding-bottom: 2rem;
+  height: auto !important;
 }
 
 .settings-card {
@@ -65,14 +83,20 @@
   border-radius: 8px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   padding: 2rem;
-  margin-bottom: 2rem; /* Añadir margen inferior */
-  /* Se elimina overflow: visible para no interferir con el scroll */
+  margin-bottom: 2rem;
+  /* IMPORTANTE: No limitar el overflow */
+  overflow: visible;
+  /* Asegurar que el card se ajuste al ancho del contenedor */
+  width: 100%;
+  height: auto;
 }
 
 .settings-section {
   margin-bottom: 2.5rem;
   padding-bottom: 2rem;
   border-bottom: 1px solid #eee;
+  /* Asegurar que las secciones no rompan el layout */
+  width: 100%;
 }
 
 .settings-section:last-of-type {
@@ -199,10 +223,13 @@
   background-color: #4338ca;
 }
 
+/* Hacer que la sección de acciones sea visible siempre */
 .settings-actions {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  margin-top: 2rem;
+  width: 100%;
 }
 
 .save-success-message {
@@ -221,10 +248,12 @@
   to { opacity: 1; }
 }
 
+/* Asegurar que los botones de acción permanezcan en el flujo del documento */
 .action-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
+  width: 100%;
 }
 
 .cancel-button,
@@ -278,21 +307,49 @@
   100% { transform: rotate(360deg); }
 }
 
-/* Estilos responsive */
+/* SOLUCIÓN PARA DISPOSITIVOS MÓVILES */
 @media (max-width: 768px) {
-  .voice-settings-header h1 {
-    font-size: 1.25rem;
+  html, body {
+    height: auto !important; /* Forzar altura */
+    overflow: visible !important; /* Permitir scroll explícitamente */
+    -webkit-overflow-scrolling: touch; /* Mejor scroll en iOS */
+    position: static !important; /* Prevenir que position interfiera con scroll */
+    overscroll-behavior: auto; /* Permitir overscroll */
+  }
+  
+  .voice-settings-container {
+    /* Hacer contenedor scrollable */
+    height: auto !important; /* Cambiar a auto en lugar de 100% */
+    min-height: 100vh;
+    max-height: none !important; /* No limitar altura máxima */
+    overflow-y: auto !important; /* Forzar scroll en Y si es necesario */
+    -webkit-overflow-scrolling: touch; /* Comportamiento suave en iOS */
+    position: relative; 
+    touch-action: pan-y; /* Permitir pan vertical */
+    overscroll-behavior-y: auto; /* Comportamiento de overscroll natural */
+  }
+  
+  .voice-settings-main {
+    overflow-y: visible !important; 
+    height: auto;
+    padding-bottom: 100px; /* Espacio adicional al final */
   }
   
   .settings-card {
     padding: 1.5rem;
+    overflow: visible; /* Asegurar que no limita el overflow */
   }
   
   .settings-section h2 {
     font-size: 1.1rem;
   }
   
+  /* Mantener botones de acción siempre visibles en móviles */
   .action-buttons {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    padding: 1rem 0;
     flex-direction: column-reverse;
     gap: 0.75rem;
   }
