@@ -6,10 +6,10 @@ import { db, auth } from '../../services/firebase';
 import './Onboarding.css';
 
 // Componentes para cada paso
-import WelcomeStep from './Steps/WelcomeStep';
-import NotebooksStep from './Steps/NotebooksStep';
-import ConceptsStep from './Steps/ConceptsStep';
-import StudyToolsStep from './Steps/StudyToolsStep';
+import WelcomeStep from '../Onboarding/Steps/WelcomeStep';
+import NotebooksStep from '../Onboarding/Steps/NotebooksStep';
+import ConceptsStep from '../Onboarding/Steps/ConceptsStep';
+import StudyToolsStep from '../Onboarding/Steps/StudyToolsStep';
 
 interface OnboardingProps {
   // Add any props your component needs
@@ -50,20 +50,20 @@ const Onboarding: React.FC<OnboardingProps> = (props) => {
 
   const handleNext = () => {
     if (currentStep < 3) {
-      setCurrentStep(currentStep + 1);
+      setCurrentStep(prev => prev + 1);
     } else {
       completeOnboarding();
     }
   };
 
-  const handleSkip = () => {
-    completeOnboarding();
+  const handlePrev = () => {
+    if (currentStep > 0) {
+      setCurrentStep(prev => prev - 1);
+    }
   };
 
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
+  const handleSkip = () => {
+    completeOnboarding();
   };
 
   const completeOnboarding = async () => {
@@ -93,57 +93,59 @@ const Onboarding: React.FC<OnboardingProps> = (props) => {
     return null;
   }
 
-  // Renderiza el paso actual
-  const renderStep = () => {
-    switch (currentStep) {
-      case 0:
-        return <WelcomeStep />;
-      case 1:
-        return <NotebooksStep />;
-      case 2:
-        return <ConceptsStep />;
-      case 3:
-        return <StudyToolsStep />;
-      default:
-        return <WelcomeStep />;
-    }
-  };
+  // Componentes para cada paso con props para navegación
+  const steps = [
+    <WelcomeStep onNext={handleNext} />,
+    <NotebooksStep onNext={handleNext} onPrev={handlePrev} />,
+    <ConceptsStep onNext={handleNext} onPrev={handlePrev} />,
+    <StudyToolsStep onFinish={handleNext} onPrev={handlePrev} />
+  ];
+
+  // Indicador de progreso
+  const ProgressIndicator = () => (
+    <div className="step-indicator">
+      {[0, 1, 2, 3].map((step) => (
+        <div 
+          key={step} 
+          className={`step-dot ${currentStep === step ? 'active' : ''} ${currentStep > step ? 'completed' : ''}`}
+        />
+      ))}
+    </div>
+  );
 
   return (
-    <div className="onboarding-container">
-      <div className="onboarding-content">
-        <div className="step-indicator">
-          {[0, 1, 2, 3].map((step) => (
-            <div 
-              key={step} 
-              className={`step-dot ${currentStep === step ? 'active' : ''} ${currentStep > step ? 'completed' : ''}`}
-            />
-          ))}
-        </div>
-        
-        <div className="step-content">
-          {renderStep()}
-        </div>
-        
-        <div className="onboarding-actions">
-          {currentStep > 0 && (
-            <button onClick={handleBack} className="back-button">
-              <i className="fas fa-arrow-left"></i> Atrás
-            </button>
-          )}
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex-1 flex items-center justify-center">
+        <div className="w-full max-w-4xl bg-white rounded-xl shadow-lg overflow-hidden my-8">
+          <ProgressIndicator />
           
-          <div className="right-actions">
-            <button onClick={handleSkip} className="skip-button">
-              Saltar
-            </button>
+          <div className="step-content">
+            {steps[currentStep]}
+          </div>
+          
+          <div className="onboarding-actions">
+            {currentStep > 0 && (
+              <button onClick={handlePrev} className="back-button">
+                <i className="fas fa-arrow-left"></i> Atrás
+              </button>
+            )}
             
-            <button onClick={handleNext} className="next-button">
-              {currentStep === 3 ? 'Comenzar' : 'Siguiente'} 
-              {currentStep < 3 && <i className="fas fa-arrow-right"></i>}
-            </button>
+            <div className="right-actions">
+              <button onClick={handleSkip} className="skip-button">
+                Saltar
+              </button>
+              
+              <button onClick={handleNext} className="next-button">
+                {currentStep === 3 ? 'Comenzar' : 'Siguiente'} 
+                {currentStep < 3 && <i className="fas fa-arrow-right"></i>}
+              </button>
+            </div>
           </div>
         </div>
       </div>
+      <footer className="py-4 text-center text-gray-500 text-sm">
+        © {new Date().getFullYear()} Simonkey - Tu estudio, tu ritmo
+      </footer>
     </div>
   );
 };
