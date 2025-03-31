@@ -18,7 +18,7 @@ import ExplainConceptPage from './pages/ExplainConceptPage';
 import SharedNotebook from './pages/SharedNotebook';
 import VoiceSettingsPage from './pages/VoiceSettingsPage';
 // Nuevas importaciones
-import Onboarding from './components/Onboarding/Onboarding';
+import OnboardingComponent from './components/Onboarding/OnboardingComponent';
 import MobileNavigation from './components/Mobile/MobileNavigation';
 // Importamos también las nuevas páginas referenciadas en las rutas
 import StudyModePage from './pages/StudyModePage';
@@ -123,6 +123,12 @@ const AppContent: React.FC = () => {
   
   const navigate = useNavigate();
 
+  // Estado para gestionar si el usuario ha completado el onboarding
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(() => {
+    // Check localStorage or user preferences from database
+    return localStorage.getItem('hasCompletedOnboarding') === 'true';
+  });
+
   // Efecto para verificar si hay un usuario en Firebase al cargar la aplicación
   useEffect(() => {
     if (!firebaseLoading) {
@@ -158,7 +164,6 @@ const AppContent: React.FC = () => {
 
   return (
     <UserContext.Provider value={{ user, setUser }}>
-      {user.isAuthenticated && <Onboarding />}
       <Routes>
         {/* Ruta principal: redirige a /notebooks si está autenticado */}
         <Route 
@@ -172,7 +177,17 @@ const AppContent: React.FC = () => {
         {/* Rutas protegidas */}
         <Route
           path="/notebooks"
-          element={user.isAuthenticated ? <Notebooks /> : <Navigate to="/login" replace />}
+          element={
+            user.isAuthenticated ? (
+              <>
+                {!hasCompletedOnboarding && <OnboardingComponent onComplete={() => {
+                  setHasCompletedOnboarding(true);
+                  localStorage.setItem('hasCompletedOnboarding', 'true');
+                }} />}
+                <Notebooks />
+              </>
+            ) : <Navigate to="/login" replace />
+          }
         />
         <Route
           path="/notebooks/:id"

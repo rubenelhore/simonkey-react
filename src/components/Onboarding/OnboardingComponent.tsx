@@ -3,19 +3,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { doc, setDoc, getDoc } from 'firebase/firestore';
 import { db, auth } from '../../services/firebase';
-import './Onboarding.css';
+import './OnboardingComponent.css';
 
 // Componentes para cada paso
-import WelcomeStep from '../Onboarding/Steps/WelcomeStep';
-import NotebooksStep from '../Onboarding/Steps/NotebooksStep';
-import ConceptsStep from '../Onboarding/Steps/ConceptsStep';
-import StudyToolsStep from '../Onboarding/Steps/StudyToolsStep';
+import WelcomeStep from './Steps/WelcomeStep';
+import NotebooksStep from './Steps/NotebooksStep';
+import ConceptsStep from './Steps/ConceptsStep';
+import StudyToolsStep from './Steps/StudyToolsStep';
 
 interface OnboardingProps {
-  // Add any props your component needs
-  // For example:
-  // step?: number;
-  // onComplete?: () => void;
+  onComplete: () => void;  // Descomenta esta línea o añádela si no existe
 }
 
 const Onboarding: React.FC<OnboardingProps> = (props) => {
@@ -35,7 +32,7 @@ const Onboarding: React.FC<OnboardingProps> = (props) => {
           if (userDoc.exists() && userDoc.data().hasCompletedOnboarding) {
             setHasSeenOnboarding(true);
             // Redirigir a notebooks si ya completó el onboarding
-            navigate('/notebooks');
+            navigate('/notebooks', { replace: true });
           }
         }
         setIsLoading(false);
@@ -44,7 +41,7 @@ const Onboarding: React.FC<OnboardingProps> = (props) => {
         setIsLoading(false);
       }
     };
-
+  
     checkOnboardingStatus();
   }, [navigate]);
 
@@ -72,6 +69,8 @@ const Onboarding: React.FC<OnboardingProps> = (props) => {
         const userDocRef = doc(db, 'users', auth.currentUser.uid);
         await setDoc(userDocRef, { hasCompletedOnboarding: true }, { merge: true });
       }
+      // Llamar a la función onComplete que viene como prop
+      props.onComplete();
       // Redirigir a la página de notebooks
       navigate('/notebooks');
     } catch (error) {
@@ -88,7 +87,8 @@ const Onboarding: React.FC<OnboardingProps> = (props) => {
       </div>
     );
   }
-
+  
+  // Este es el punto clave - si el usuario ya ha visto el onboarding, retorna null
   if (hasSeenOnboarding) {
     return null;
   }
