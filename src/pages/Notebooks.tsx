@@ -238,17 +238,18 @@ const Notebooks: React.FC = () => {
               className="logo-img"
               width="24"
               height="24"
-            />
+              style={{ filter: 'brightness(0) invert(1)' }}
+            />  
             <h1>
-              <span style={{ color: 'black' }}>Simon</span>
-              <span style={{ color: '#6147FF' }}>key</span>
+              <span style={{ color: 'white' }}>Simon</span>
+              <span style={{ color: 'white' }}>key</span>
             </h1>
           </div>
           
           {/* Espacio Personal Header */}
           <div className="personal-space-header">
             <h2 className="user-greeting">
-              Espacio Personal de <span style={{ color: '#6147FF' }}>{userData.nombre || "Simón"}</span>
+              Espacio Personal de <span style={{ color: 'white' }}>{userData.nombre || "Simón"}</span>
             </h2>
           </div>
           
