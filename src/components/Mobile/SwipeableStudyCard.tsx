@@ -16,7 +16,7 @@ interface Concept {
 
 interface SwipeableStudyCardProps {
   concept: Concept;
-  onComplete: (conceptId: string, confidence: string) => void;
+  onComplete: (conceptId: string) => void;  // Simplificado, eliminando el parámetro confidence
   onLater: (conceptId: string) => void;
   isLast: boolean;
 }
@@ -49,18 +49,14 @@ const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({ concept, onComp
       setExitDirection(direction);
       setIsExiting(true);
       
-      // Determinar confianza basada en dirección
-      const newConfidence = direction === 'right' ? 'high' : 'low';
-      setConfidence(newConfidence);
-      
       // Esperar a que termine la animación para notificar al padre
       setTimeout(() => {
         if (direction === 'right') {
-          onComplete(concept.id, newConfidence);
+          onComplete(concept.id);  // Eliminado el segundo parámetro
         } else {
           onLater(concept.id);
         }
-      }, 300); // Asegúrate de que este tiempo coincida con la duración de la animación CSS
+      }, 300);
     }
   };
   
