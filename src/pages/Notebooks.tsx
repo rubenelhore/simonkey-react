@@ -107,11 +107,9 @@ const Notebooks: React.FC = () => {
     }
   };
 
-  // Funciones para manejar la personalización
+  // Modificar el handler de personalización para navegar a ProfilePage
   const handleOpenPersonalization = () => {
-    setIsPersonalizationOpen(true);
-    setSuccessMessage('');
-    setMenuOpen(false); // Cerrar menú desplegable
+    navigate('/profile');
   };
 
   const handleClosePersonalization = () => {
@@ -263,7 +261,7 @@ const Notebooks: React.FC = () => {
         <div className={`mobile-menu ${menuOpen ? 'show-menu' : ''}`}>
           <div className="user-section">
             <button className="personalization-button" onClick={handleOpenPersonalization}>
-              <i className="fas fa-user-cog"></i> Personalización
+              <i className="fas fa-user-cog"></i> Mi perfil
             </button>
             <button className="voice-settings-button" onClick={() => navigate('/settings/voice')}>
               <i className="fas fa-volume-up"></i> Configuración de voz

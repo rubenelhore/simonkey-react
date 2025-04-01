@@ -148,6 +148,11 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
             console.log("Intereses iniciales:", userData.intereses);
             const validInterests = userData.intereses.filter(interest => interest && interest.trim() !== '');
             setUserInterests(validInterests.length > 0 ? validInterests : ['']);
+          } else if (userData.interests && Array.isArray(userData.interests)) {
+            // También buscar en el campo "interests" para compatibilidad
+            console.log("Intereses iniciales (campo alternativo):", userData.interests);
+            const validInterests = userData.interests.filter(interest => interest && interest.trim() !== '');
+            setUserInterests(validInterests.length > 0 ? validInterests : ['']);
           }
         }
       } catch (error) {
@@ -166,6 +171,10 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
             if (userData.intereses && Array.isArray(userData.intereses)) {
               console.log("ACTUALIZACIÓN EN TIEMPO REAL - Intereses:", userData.intereses);
               const validInterests = userData.intereses.filter(interest => interest && interest.trim() !== '');
+              setUserInterests(validInterests.length > 0 ? validInterests : ['']);
+            } else if (userData.interests && Array.isArray(userData.interests)) {
+              console.log("ACTUALIZACIÓN EN TIEMPO REAL - Intereses (campo alternativo):", userData.interests);
+              const validInterests = userData.interests.filter(interest => interest && interest.trim() !== '');
               setUserInterests(validInterests.length > 0 ? validInterests : ['']);
             } else {
               console.log("No se encontraron intereses en la actualización");

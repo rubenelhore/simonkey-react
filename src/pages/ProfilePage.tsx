@@ -15,6 +15,7 @@ interface UserData {
   interests: string[];
   learningStyle: string;
   notificationsEnabled: boolean;
+  apellidos?: string; // Añadir este campo
 }
 
 interface UserStats {
@@ -38,7 +39,8 @@ const ProfilePage: React.FC = () => {
     photoURL: '',
     interests: [],
     learningStyle: 'visual',
-    notificationsEnabled: true
+    notificationsEnabled: true,
+    apellidos: ''
   });
   
   const [isEditing, setIsEditing] = useState<boolean>(false);
@@ -83,15 +85,16 @@ const ProfilePage: React.FC = () => {
             name: auth.currentUser.displayName || '',
             email: auth.currentUser.email || '',
             photoURL: auth.currentUser.photoURL || '',
-            interests: data.interests || [],
-            learningStyle: data.learningStyle || 'visual',
-            notificationsEnabled: data.notificationsEnabled !== false
+            interests: data.intereses || data.interests || [], // Primero buscar en intereses, luego en interests
+            learningStyle: data.tipoAprendizaje || data.learningStyle || 'visual', // Primero tipoAprendizaje, luego learningStyle
+            notificationsEnabled: data.notificationsEnabled !== false,
+            apellidos: data.apellidos || ''
           });
           
           // Establecer estadísticas del usuario
           setStats({
             totalConcepts: data.totalConcepts || 0,
-            masteredConcepts: data.masteredConcepts || 0,
+            masteredConcepts: 0,
             notebooks: data.notebooksCount || 0,
             studyTime: data.studyTime || 0
           });
@@ -103,7 +106,8 @@ const ProfilePage: React.FC = () => {
             photoURL: auth.currentUser.photoURL || '',
             interests: [],
             learningStyle: 'visual',
-            notificationsEnabled: true
+            notificationsEnabled: true,
+            apellidos: ''
           });
           
           // Crear documento de usuario si no existe
@@ -184,8 +188,9 @@ const ProfilePage: React.FC = () => {
       const userDocRef = doc(db, 'users', auth.currentUser.uid);
       await updateDoc(userDocRef, {
         displayName: userData.name,
-        interests: userData.interests,
-        learningStyle: userData.learningStyle,
+        apellidos: userData.apellidos,
+        intereses: userData.interests, // Cambiar "interests" por "intereses"
+        tipoAprendizaje: userData.learningStyle, // Cambiar "learningStyle" por "tipoAprendizaje"
         notificationsEnabled: userData.notificationsEnabled,
         updatedAt: new Date()
       });
@@ -286,11 +291,22 @@ const ProfilePage: React.FC = () => {
                 onChange={handleInputChange}
                 placeholder="Tu nombre"
                 maxLength={50}
+                className="form-control"
+              />
+              <input
+                type="text"
+                name="apellidos"
+                value={userData.apellidos || ''}
+                onChange={handleInputChange}
+                placeholder="Tus apellidos"
+                maxLength={50}
+                className="form-control"
+                style={{ marginTop: '0.5rem' }}
               />
             </div>
           ) : (
             <div className="profile-name">
-              <h2>{userData.name || 'Usuario'}</h2>
+              <h2>{userData.name || 'Usuario'} {userData.apellidos || ''}</h2>
               <p>{userData.email}</p>
             </div>
           )}

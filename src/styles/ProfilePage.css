@@ -137,7 +137,10 @@
   }
   
   .profile-name-edit {
-    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
   }
   
   .profile-name-edit input {
@@ -151,6 +154,21 @@
   }
   
   .profile-name-edit input:focus {
+    border-color: #6147FF;
+  }
+  
+  /* Para mantener consistencia con los inputs originales de Notebooks */
+  .form-control {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    font-size: 1rem;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  
+  .form-control:focus {
     border-color: #6147FF;
   }
   
