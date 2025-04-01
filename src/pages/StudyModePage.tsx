@@ -142,38 +142,50 @@ const StudyModePage = () => {
 
   // Manejar concepto completado (dominado)
   const handleConceptComplete = (conceptId: any) => {
-    // Actualizar estado local
-    setCurrentConcepts(prev => prev.filter(c => c.id !== conceptId));
+    // Incrementar contador de completados
+    setConceptsCompleted(prev => prev + 1);
+    
+    // Actualizar conceptos restantes
     const newRemaining = conceptsRemaining - 1;
     setConceptsRemaining(newRemaining);
-    setConceptsCompleted(prev => prev + 1);
-
+    
+    // Quitar el concepto estudiado y reorganizar el array para que el siguiente concepto esté en la posición 0
+    setCurrentConcepts(prev => {
+      const updated = prev.filter(c => c.id !== conceptId);
+      // Reorganizar para que el siguiente concepto esté al principio
+      return updated;
+    });
+    
     // Verificar si la sesión está completa
     if (newRemaining <= 0) {
       setIsSessionComplete(true);
       logStudyActivity('study_session_completed', 'Sesión completada');
     }
-
-    // Actualizar estado en Firestore (en una implementación real)
-    // En este ejemplo solo registramos la actividad
+    
+    // Registrar actividad
     logStudyActivity('concept_mastered',
       `Concepto dominado: ${currentConcepts.find(c => c.id === conceptId)?.término || 'Concepto'}`);
   };
 
   // Manejar concepto para repasar después
   const handleConceptLater = (conceptId: any) => {
-    // Actualizar estado local
-    setCurrentConcepts(prev => prev.filter(c => c.id !== conceptId));
+    // Actualizar conceptos restantes
     const newRemaining = conceptsRemaining - 1;
     setConceptsRemaining(newRemaining);
-
+    
+    // Quitar el concepto y reorganizar el array
+    setCurrentConcepts(prev => {
+      const updated = prev.filter(c => c.id !== conceptId);
+      return updated;
+    });
+    
     // Verificar si la sesión está completa
     if (newRemaining <= 0) {
       setIsSessionComplete(true);
       logStudyActivity('study_session_completed', 'Sesión completada');
     }
-
-    // En una implementación completa, moveríamos este concepto a una lista de "repasar después"
+    
+    // Registrar actividad
     logStudyActivity('concept_review_later',
       `Repasar después: ${currentConcepts.find(c => c.id === conceptId)?.término || 'Concepto'}`);
   };

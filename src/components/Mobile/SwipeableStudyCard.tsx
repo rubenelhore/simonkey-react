@@ -43,7 +43,7 @@ const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({ concept, onComp
     }
   }, [swipeDirection, resetSwipe]);
   
-  // Manejar dirección de swipe
+  // Modifica la función handleSwipe para incluir una callback
   const handleSwipe = (direction: string) => {
     if (direction === 'left' || direction === 'right') {
       setExitDirection(direction);
@@ -60,7 +60,7 @@ const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({ concept, onComp
         } else {
           onLater(concept.id);
         }
-      }, 300);
+      }, 300); // Asegúrate de que este tiempo coincida con la duración de la animación CSS
     }
   };
   
