@@ -14,7 +14,6 @@ import {
   serverTimestamp 
 } from 'firebase/firestore';
 import { GoogleGenerativeAI} from '@google/generative-ai';
-import ToolsMenu from '../components/ToolsMenu';
 import '../styles/NotebookDetail.css';
 import ReactDOM from 'react-dom';
 
@@ -649,11 +648,6 @@ const NotebookDetail = () => {
       </header>
 
       <main className="notebook-detail-main">
-        <div className="sidebar-container">
-          {/* Barra lateral con menús */}
-          <ToolsMenu notebookId={id} />
-        </div>
-
         <section className="concepts-section">
           <h2>Conceptos del Cuaderno</h2>
           

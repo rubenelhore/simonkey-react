@@ -177,7 +177,11 @@
   }
   
   .start-study-container {
+    display: flex;
+    flex-direction: column;
     width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
     text-align: center;
     margin-top: 1rem;
   }
@@ -207,6 +211,41 @@
   .start-study-button:disabled {
     background-color: #D1D5DB;
     cursor: not-allowed;
+  }
+  
+  /* Estilos para el botón de aprendizaje */
+  .learning-button {
+    background-color: white;
+    color: var(--primary);
+    border: 2px solid var(--primary);
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    width: 100%;
+  }
+  
+  .learning-button:hover:not(:disabled) {
+    background-color: rgba(97, 71, 255, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  .learning-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    border-color: #ccc;
+    color: #999;
+  }
+  
+  .learning-button i {
+    font-size: 1.1rem;
   }
   
   /* Study Session */
@@ -532,5 +571,17 @@
     
     .instruction {
       font-size: 0.75rem;
+    }
+  }
+
+  /* Media queries para móviles */
+  @media (max-width: 768px) {
+    .start-study-container {
+      padding: 0 1rem;
+    }
+    
+    .learning-button, .start-study-button {
+      padding: 0.7rem 1rem;
+      font-size: 0.95rem;
     }
   }

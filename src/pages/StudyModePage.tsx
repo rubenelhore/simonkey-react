@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
 import SwipeableStudyCard from '../components/Mobile/SwipeableStudyCard';
+import ToolsMenu from '../components/ToolsMenu';
 import '../styles/StudyModePage.css';
 
 // Define an interface for your notebook objects
@@ -264,6 +265,15 @@ const StudyModePage = () => {
               disabled={currentConcepts.length === 0}
             >
               Comenzar a estudiar
+            </button>
+            
+            {/* Nuevo botón de Aprendizaje */}
+            <button
+              className="learning-button"
+              onClick={() => selectedNotebook && navigate(`/tools/explain/simple/${selectedNotebook.id}`)}
+              disabled={!selectedNotebook}
+            >
+              <i className="fas fa-lightbulb"></i> Explicación de conceptos
             </button>
           </div>
         )}

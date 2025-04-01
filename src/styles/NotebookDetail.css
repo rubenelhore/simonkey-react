@@ -262,12 +262,9 @@
   max-width: 1200px;
   margin: 2rem auto;
   padding: 0 2rem;
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 2rem;
+  display: block; /* Cambiado de grid a block para ocupar el ancho completo */
 }
 
-/* Contenedor de la barra lateral */
 .sidebar-container {
   display: flex;
   flex-direction: column;
@@ -287,6 +284,7 @@
   border-radius: 8px;
   box-shadow: var(--shadow);
   padding: 1.5rem;
+  width: 100%; /* Asegurar que tome el ancho completo */
 }
 
 .concepts-section h2 {
@@ -315,8 +313,8 @@
 /* Optimized concept cards grid layout */
 .concept-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 3fr));
-  gap: 8px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
   width: 100%;
 }
 
@@ -324,18 +322,20 @@
 .concept-card {
   background: white;
   border-radius: 8px;
-  padding: 6px;
+  padding: 12px 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
   transition: all 0.25s ease;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 85px; /* Further reduced height */
+  min-height: 80px;
   text-align: center;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(229, 231, 235, 0.8);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .concept-card:hover {
@@ -350,7 +350,6 @@
   color: #334155;
   margin: 0;
   transition: color 0.2s ease;
-  /* Add word wrapping for long terms */
   overflow-wrap: break-word;
   word-wrap: break-word;
   hyphens: auto;
@@ -383,17 +382,19 @@
 .add-concept-card {
   background: rgba(248, 250, 252, 0.8);
   border-radius: 8px;
-  padding: 12px;
+  padding: 12px 10px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   transition: all 0.25s ease;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 85px; /* Reduced height to match concept cards */
+  min-height: 80px;
   text-align: center;
   cursor: pointer;
   border: 1px dashed rgba(203, 213, 225, 0.8);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .add-concept-card:hover {
@@ -849,7 +850,6 @@
 /* Media queries para diseño responsivo */
 @media (max-width: 768px) {
   .notebook-detail-main {
-    grid-template-columns: 1fr;
     padding: 0 1rem;
     margin: 1rem auto;
   }
@@ -869,8 +869,8 @@
   }
 
   .concept-cards {
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-    gap: 10px;
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas en móviles pequeños */
+    gap: 12px;
   }
   
   .concept-card, .add-concept-card {
@@ -920,11 +920,25 @@
 /* Media queries para tablets */
 @media (min-width: 769px) and (max-width: 1024px) {
   .notebook-detail-main {
-    grid-template-columns: 220px 1fr;
     padding: 0 1.5rem;
+    display: block; /* Aseguramos que sea block para usar todo el ancho */
   }
 
   .concept-cards {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    grid-template-columns: repeat(3, 1fr); /* 3 columnas en tablets */
+  }
+}
+
+/* Media queries para pantallas más grandes */
+@media (min-width: 1025px) and (max-width: 1439px) {
+  .concept-cards {
+    grid-template-columns: repeat(5, 1fr); /* 4 columnas en pantallas normales */
+  }
+}
+
+/* Media queries para pantallas muy grandes */
+@media (min-width: 1440px) {
+  .concept-cards {
+    grid-template-columns: repeat(5, 1fr); /* 5 columnas en pantallas grandes */
   }
 }
