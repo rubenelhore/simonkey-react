@@ -560,7 +560,7 @@ const ConceptDetail = () => {
           onClick={() => navigate(`/notebooks/${notebookId}`)}
           className="back-button"
         >
-          Volver al cuaderno
+          <i className="fas fa-arrow-left"></i>
         </button>
       </div>
     );
@@ -575,7 +575,7 @@ const ConceptDetail = () => {
               onClick={() => navigate(`/notebooks/${notebookId}`)}
               className="back-button"
             >
-              <i className="fas fa-arrow-left"></i> Volver
+              <i className="fas fa-arrow-left"></i>
             </button>
             <h1 className="centered-title">{cuaderno.title} - Conceptos</h1>
           </div>

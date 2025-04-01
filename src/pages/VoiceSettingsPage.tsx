@@ -215,7 +215,7 @@ const VoiceSettingsPage: React.FC = () => {
             onClick={() => navigate('/notebooks')}
             className="back-button"
           >
-            <i className="fas fa-arrow-left"></i> Volver
+            <i className="fas fa-arrow-left"></i> 
           </button>
           <h1>Configuración de Voz</h1>
         </div>

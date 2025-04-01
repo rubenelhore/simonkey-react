@@ -633,7 +633,7 @@ const NotebookDetail = () => {
       <header className="notebook-detail-header">
         <div className="header-content">
           <button onClick={() => navigate('/notebooks')} className="back-button">
-            <i className="fas fa-arrow-left"></i> Volver
+            <i className="fas fa-arrow-left"></i>
           </button>
           
           <div className="title-container">
@@ -642,7 +642,7 @@ const NotebookDetail = () => {
           
           <div className="header-actions">
             <button onClick={handleShareNotebook} className="share-button" title="Compartir cuaderno">
-              <i className="fas fa-share-alt"></i> Compartir
+              <i className="fas fa-share-alt"></i>
             </button>
           </div>
         </div>
