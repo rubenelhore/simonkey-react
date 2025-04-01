@@ -363,12 +363,32 @@ const StudyModePage = () => {
     
     // Si NO estamos en modo repaso, guardar para repaso posterior
     if (!showReviewMode) {
+      // Al inicio de handleConceptLater:
+      if (!auth.currentUser) {
+        console.error("Usuario no autenticado");
+        displayFeedback('warning', 'Debes iniciar sesión para guardar conceptos');
+        return;
+      }
+
+      if (!selectedNotebook?.id) {
+        console.error("ID de cuaderno no definido");
+        displayFeedback('warning', 'Error al identificar el cuaderno');
+        return;
+      }
+
+      console.log("Intentando guardar concepto para repaso con los siguientes datos:", {
+        userId: auth.currentUser.uid,
+        notebookId: selectedNotebook.id,
+        conceptDocId: concept.docId,
+        conceptIndex: concept.index
+      });
+
       try {
         // Verificar si ya existe en la colección de repaso
         const existingQuery = query(
           collection(db, 'reviewConcepts'),
-          where('userId', '==', auth.currentUser?.uid),
-          where('notebookId', '==', selectedNotebook?.id),
+          where('userId', '==', auth.currentUser.uid),
+          where('notebookId', '==', selectedNotebook.id),
           where('conceptDocId', '==', concept.docId),
           where('conceptIndex', '==', concept.index)
         );
@@ -376,10 +396,10 @@ const StudyModePage = () => {
         const existingSnapshot = await getDocs(existingQuery);
         
         if (existingSnapshot.empty) {
-          // Guardar en la colección de conceptos para repaso
+          // Guardar en la colección de conceptos para repaso con valores garantizados
           await addDoc(collection(db, 'reviewConcepts'), {
-            userId: auth.currentUser?.uid,
-            notebookId: selectedNotebook?.id,
+            userId: auth.currentUser.uid,
+            notebookId: selectedNotebook.id,
             conceptDocId: concept.docId,
             conceptIndex: concept.index,
             createdAt: new Date()
@@ -395,7 +415,9 @@ const StudyModePage = () => {
           }));
         }
       } catch (error) {
-        console.error("Error al guardar concepto para repaso:", error);
+        console.error("Error detallado al guardar concepto para repaso:", error);
+        console.log("Estado de autenticación:", !!auth.currentUser);
+        console.log("ID de usuario:", auth.currentUser?.uid);
         displayFeedback('warning', 'Error al guardar para repaso');
       }
     } else if (concept.reviewId) {
@@ -524,6 +546,9 @@ const StudyModePage = () => {
             {pendingReview > 0 && (
               <div className="review-toggle">
                 <div className="toggle-container">
+                  <span className={`toggle-label ${!showReviewMode ? 'active' : ''}`}>
+                    Modo estudio
+                  </span>
                   <label className="toggle-switch">
                     <input 
                       type="checkbox" 
@@ -532,21 +557,17 @@ const StudyModePage = () => {
                     />
                     <span className="switch-slider"></span>
                   </label>
-                  <span className="review-label">
-                    <span className="review-mode-text">
-                      {showReviewMode ? 'Modo repaso' : 'Modo estudio'} 
-                    </span>
+                  <span className={`toggle-label ${showReviewMode ? 'active' : ''}`}>
+                    Modo repaso
+                  </span>
+                </div>
+                {pendingReview > 0 && (
+                  <div className="review-badge-container">
                     <span className="review-badge">
                       {pendingReview} pendientes
                     </span>
-                  </span>
-                </div>
-                
-                <p className="review-description">
-                  {showReviewMode 
-                    ? 'Repasa únicamente los conceptos que marcaste para revisión posterior.' 
-                    : 'Cambia a modo repaso para trabajar en conceptos pendientes.'}
-                </p>
+                  </div>
+                )}
               </div>
             )}
             

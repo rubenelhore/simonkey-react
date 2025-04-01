@@ -636,10 +636,30 @@
 
 /* Estilos para el toggle de repaso */
 .review-toggle {
+  margin: 20px 0;
+  background-color: #f8f9fa;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.toggle-container {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin: 10px 0;
+  justify-content: center;
+  gap: 15px;
+}
+
+.toggle-label {
+  font-size: 0.9rem;
+  color: #6B7280;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.toggle-label.active {
+  color: #6147FF;
+  font-weight: 600;
 }
 
 .toggle-switch {
@@ -687,9 +707,19 @@ input:checked + .switch-slider:before {
   transform: translateX(26px);
 }
 
-.review-label {
-  font-size: 0.9rem;
-  color: #555;
+.review-badge-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+.review-badge {
+  background-color: #6147FF;
+  color: white;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 50px;
+  font-weight: 400;
 }
 
 /* Mejoras para StudyModePage.css - agregar al archivo existente */
