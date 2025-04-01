@@ -16,12 +16,13 @@ interface Concept {
 
 interface SwipeableStudyCardProps {
   concept: Concept;
-  onComplete: (conceptId: string) => void;  // Simplificado, eliminando el parámetro confidence
+  onComplete: (conceptId: string) => void;
   onLater: (conceptId: string) => void;
   isLast: boolean;
+  reviewMode: boolean; // Añadido reviewMode a las props
 }
 
-const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({ concept, onComplete, onLater, isLast }) => {
+const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({ concept, onComplete, onLater, isLast, reviewMode }) => {
   const [flipped, setFlipped] = useState(false);
   const [confidence, setConfidence] = useState<string | null>(null);
   const [exitDirection, setExitDirection] = useState<string | null>(null);

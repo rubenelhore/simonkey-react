@@ -691,3 +691,389 @@ input:checked + .switch-slider:before {
   font-size: 0.9rem;
   color: #555;
 }
+
+/* Mejoras para StudyModePage.css - agregar al archivo existente */
+
+/* Estilización para el modo repaso */
+.study-mode-container.review-mode .study-mode-header {
+  background-color: #6c5ce7;
+}
+
+.review-mode .progress-fill {
+  background: linear-gradient(90deg, #6c5ce7 0%, #a29bfe 100%);
+}
+
+.mode-badge {
+  background-color: #e84393;
+  color: white;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+.mode-indicator {
+  color: #6c5ce7;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
+/* Mejorar retroalimentación */
+.feedback-message {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  padding: 12px 24px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: feedback-appear 0.3s ease, feedback-disappear 0.3s ease 1.2s forwards;
+  max-width: 80%;
+}
+
+.feedback-message i {
+  margin-right: 8px;
+  font-size: 18px;
+}
+
+.feedback-message.success {
+  background-color: #27ae60;
+  color: white;
+}
+
+.feedback-message.info {
+  background-color: #3498db;
+  color: white;
+}
+
+.feedback-message.warning {
+  background-color: #e67e22;
+  color: white;
+}
+
+@keyframes feedback-appear {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes feedback-disappear {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+}
+
+/* Mejoras del toggle de repaso */
+.review-toggle {
+  margin: 20px 0;
+  background-color: #f8f9fa;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  margin-right: 12px;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+input:checked + .switch-slider {
+  background-color: #6c5ce7;
+}
+
+input:checked + .switch-slider:before {
+  transform: translateX(26px);
+}
+
+.review-label {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+}
+
+.review-mode-text {
+  margin-right: 8px;
+}
+
+.review-badge {
+  background-color: #6c5ce7;
+  color: white;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 50px;
+  font-weight: 400;
+}
+
+.review-description {
+  margin-top: 12px;
+  font-size: 14px;
+  color: #6c757d;
+  padding-left: 62px;
+}
+
+/* Botones mejorados */
+.start-study-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background-color: #4a6bff;
+  color: white;
+  font-size: 16px;
+  font-weight: 600;
+  margin-top: 20px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.start-study-button:hover {
+  background-color: #3551cc;
+}
+
+.start-study-button i {
+  margin-right: 8px;
+}
+
+.start-study-button.review-mode {
+  background-color: #6c5ce7;
+}
+
+.start-study-button.review-mode:hover {
+  background-color: #5649b8;
+}
+
+/* Pantalla de finalización mejorada */
+.session-complete {
+  text-align: center;
+  padding: 20px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.completion-header {
+  margin-bottom: 30px;
+}
+
+.completion-header i {
+  font-size: 60px;
+  color: #ffc107;
+  margin-bottom: 15px;
+  display: block;
+}
+
+.completion-header h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.completion-header p {
+  color: #6c757d;
+}
+
+.session-stats {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 30px;
+  gap: 10px;
+}
+
+.stat-item {
+  flex: 1;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  padding: 15px;
+  text-align: center;
+}
+
+.stat-icon {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: #4a6bff;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 5px;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.session-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  gap: 15px;
+}
+
+.action-button {
+  flex: 1;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-button i {
+  margin-right: 8px;
+}
+
+.action-button.primary {
+  background-color: #4a6bff;
+  color: white;
+}
+
+.action-button.primary:hover {
+  background-color: #3551cc;
+}
+
+.action-button.secondary {
+  background-color: #f8f9fa;
+  color: #343a40;
+  border: 1px solid #dee2e6;
+}
+
+.action-button.secondary:hover {
+  background-color: #e9ecef;
+}
+
+.pending-review-info {
+  margin: 20px 0;
+  background-color: #f1f0ff;
+  border: 1px solid #d8d4fe;
+  border-radius: 8px;
+  padding: 10px;
+  text-align: center;
+  font-size: 14px;
+  color: #6c5ce7;
+}
+
+.switch-to-review-button {
+  margin-top: 20px;
+  padding: 12px;
+  width: 100%;
+  background-color: #6c5ce7;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.switch-to-review-button:hover {
+  background-color: #5649b8;
+}
+
+.switch-to-review-button i {
+  margin-right: 8px;
+}
+
+/* Pantalla de conceptos vacíos */
+.empty-concepts {
+  text-align: center;
+  padding: 30px;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  margin: 20px;
+}
+
+.empty-concepts-icon {
+  font-size: 60px;
+  color: #4a6bff;
+  margin-bottom: 20px;
+}
+
+.empty-concepts h3 {
+  font-size: 20px;
+  margin-bottom: 10px;
+}
+
+.empty-concepts p {
+  color: #6c757d;
+  margin-bottom: 20px;
+}
+
+.finish-session-button {
+  padding: 10px 20px;
+  background-color: #4a6bff;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.finish-session-button:hover {
+  background-color: #3551cc;
+}
