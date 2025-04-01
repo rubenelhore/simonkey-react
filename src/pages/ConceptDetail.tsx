@@ -76,8 +76,11 @@ const ConceptDetail = () => {
   // Añade este estado para almacenar conceptos precargados
   const [preloadedConcepts, setPreloadedConcepts] = useState<{[key: number]: Concept}>({});
 
-  // Añade este estado
-  const [autoReadEnabled, setAutoReadEnabled] = useState<boolean>(true);
+  // Y modifica la inicialización del estado para cargar la preferencia guardada
+  const [autoReadEnabled, setAutoReadEnabled] = useState<boolean>(() => {
+    const savedPreference = localStorage.getItem('autoReadEnabled');
+    return savedPreference ? JSON.parse(savedPreference) : true;
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -221,6 +224,11 @@ const ConceptDetail = () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [currentIndex, totalConcepts, conceptoId, notebookId]);
+
+  // Añade este efecto para persistir la preferencia de autolectura
+  useEffect(() => {
+    localStorage.setItem('autoReadEnabled', JSON.stringify(autoReadEnabled));
+  }, [autoReadEnabled]);
 
   // Función para precargar conceptos cercanos (siguiente y anterior)
   const preloadNearbyConcepts = async (currentIdx: number) => {
@@ -501,6 +509,9 @@ const ConceptDetail = () => {
   };
 
   const handleAutoRead = async () => {
+    // Verificar primero si autoReadEnabled está activado
+    if (!autoReadEnabled) return;
+    
     if (auth.currentUser) {
       try {
         const voiceSettings = await loadVoiceSettings();
@@ -515,6 +526,9 @@ const ConceptDetail = () => {
   };
 
   const fallbackToLocalStorage = () => {
+    // Verificar primero si autoReadEnabled está activado
+    if (!autoReadEnabled) return;
+    
     try {
       const localSettings = localStorage.getItem('voiceSettings');
       if (localSettings) {
@@ -606,16 +620,6 @@ const ConceptDetail = () => {
               // Modo de visualización
               <>
                 <h2 className="concept-term">{concepto.término}</h2>
-                <div className="concept-progress">
-                  <div className="progress-bar">
-                    <div 
-                      className="progress-fill"
-                      style={{ width: `${conceptProgress}%` }}
-                      title={`Progreso de estudio: ${conceptProgress}%`}
-                    ></div>
-                  </div>
-                  <span className="progress-text">{conceptProgress}% estudiado</span>
-                </div>
                 <div className="concept-definition">
                   <h3>Definición:</h3>
                   <p>{concepto.definición}</p>
@@ -773,14 +777,6 @@ const ConceptDetail = () => {
               )}
             </div>
           </div>
-        </div>
-
-        <div className="keyboard-shortcuts">
-          <h3>Atajos de teclado:</h3>
-          <ul>
-            <li><span className="key">←</span> Concepto anterior</li>
-            <li><span className="key">→</span> Siguiente concepto</li>
-          </ul>
         </div>
       </main>
     </div>
