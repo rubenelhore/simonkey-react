@@ -203,12 +203,8 @@ const StudyModePage = () => {
         
         if (concepts.length === 0) {
           showFeedback('info', 'No hay conceptos pendientes para repasar');
-          // Sugiero cambiar al modo de estudio
-          setStudyMode(StudyMode.STUDY);
-          concepts = await studyService.getNewConceptsForStudy(
-            auth.currentUser.uid,
-            selectedNotebook.id
-          );
+          completeStudySession(); // End session instead of changing mode
+          return;
         }
       } else if (studyMode === StudyMode.QUIZ) {
         // En modo evaluación, seleccionar mezcla de conceptos aprendidos recientemente
