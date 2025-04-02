@@ -32,7 +32,6 @@ enum StudyMode {
 }
 
 const StudyModePage = () => {
-  // Estado para la navegación y selección del usuario
   const navigate = useNavigate();
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const [selectedNotebook, setSelectedNotebook] = useState<Notebook | null>(null);
@@ -43,6 +42,9 @@ const StudyModePage = () => {
   const [allConcepts, setAllConcepts] = useState<Concept[]>([]);
   const [currentConcepts, setCurrentConcepts] = useState<Concept[]>([]);
   const [reviewQueue, setReviewQueue] = useState<Concept[]>([]);
+  
+  // Add this state at the top level
+  const [nextSession, setNextSession] = useState<Date | null>(null);
   
   // Estado para métricas y progreso
   const [metrics, setMetrics] = useState<StudySessionMetrics>({
@@ -387,6 +389,14 @@ const StudyModePage = () => {
       return null;
     }
   };
+
+  useEffect(() => {
+    if (sessionComplete) {
+      getNextRecommendedSession().then(date => {
+        setNextSession(date);
+      });
+    }
+  }, [sessionComplete]);
   
   // Iniciar nueva sesión con mismo cuaderno
   const startNewSession = () => {
@@ -615,17 +625,6 @@ const StudyModePage = () => {
   
   // 3. Renderizar resumen de sesión completada
   const renderSessionSummary = () => {
-    // Calcular próxima sesión recomendada
-    const [nextSession, setNextSession] = useState<Date | null>(null);
-    
-    useEffect(() => {
-      if (sessionComplete) {
-        getNextRecommendedSession().then(date => {
-          setNextSession(date);
-        });
-      }
-    }, [sessionComplete]);
-    
     const formatDate = (date: Date) => {
       return new Intl.DateTimeFormat('es', { 
         weekday: 'long', 

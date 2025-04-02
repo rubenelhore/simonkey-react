@@ -155,16 +155,7 @@ const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({
           <div className="source">
             <span>Fuente: {concept.fuente}</span>
           </div>
-          
-          <div className="confidence-buttons">
-            <button className="low-confidence" onClick={() => handleSwipe('left')}>
-              <i className="fas fa-redo"></i> Repasar
-            </button>
-            <button className="high-confidence" onClick={() => handleSwipe('right')}>
-              <i className="fas fa-check"></i> Dominado
-            </button>
-          </div>
-          
+  
           <div className="tap-hint">
             <span>Toca para volver</span>
           </div>
