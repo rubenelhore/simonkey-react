@@ -566,11 +566,10 @@ const StudyModePage = () => {
 
         {selectedNotebook && (
           <div className="start-study-container">
-            {/* Reemplazar el texto estático por una visualización dinámica y correcta */}          
             <div className="review-toggle">
               <div className="toggle-container">
                 <span className={`toggle-label ${!showReviewMode ? 'active' : ''}`}>
-                  Modo repaso
+                  Modo estudio
                 </span>
                 <label className="toggle-switch">
                   <input 
@@ -581,7 +580,7 @@ const StudyModePage = () => {
                   <span className="switch-slider"></span>
                 </label>
                 <span className={`toggle-label ${showReviewMode ? 'active' : ''}`}>
-                  Modo estudio
+                  Modo repaso
                 </span>
               </div>
               {pendingReview > 0 && !showReviewMode && (
@@ -658,7 +657,7 @@ const StudyModePage = () => {
           <div className="progress-text">
             <span>
               <strong>{conceptsCompleted}</strong> de <strong>{conceptsCompleted + conceptsRemaining}</strong> conceptos
-              {showReviewMode && <span className="mode-indicator"> · Modo Estudio</span>}
+              <span className="mode-indicator"> · {showReviewMode ? 'Modo Repaso' : 'Modo Estudio'}</span>
             </span>
           </div>
           <div className="progress-bar">
@@ -802,8 +801,12 @@ const StudyModePage = () => {
           </button>
 
           <h1>
-            {selectedNotebook ? selectedNotebook.title : 'Modo Repaso'}
-            {showReviewMode && studyStarted && <span className="mode-badge">Repaso</span>}
+            {selectedNotebook ? selectedNotebook.title : ''}
+            {studyStarted && (
+              <span className={`mode-badge ${showReviewMode ? 'review' : 'study'}`}>
+                {showReviewMode ? 'Modo Repaso' : 'Modo Estudio'}
+              </span>
+            )}
           </h1>
 
           <div className="header-spacer"></div>
