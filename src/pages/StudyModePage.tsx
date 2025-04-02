@@ -1,550 +1,460 @@
 // src/pages/StudyModePage.tsx
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, query, where, getDocs, addDoc, doc, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, getDoc, setDoc, updateDoc, arrayUnion, Timestamp } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
 import SwipeableStudyCard from '../components/Mobile/SwipeableStudyCard';
+import FeedbackMessage from '../components/FeedbackMessage';
+import { useStudyService } from '../hooks/useStudyService';
+import { Concept, ResponseQuality } from '../types/interfaces';
 import '../styles/StudyModePage.css';
 
-// Define interfaces para los tipos
 interface Notebook {
   id: string;
   title: string;
   color: string;
 }
 
-interface Concept {
-  término: string;
-  definición: string;
-  fuente: string;
-  docId: string;
-  index: number;
-  id: string;
-  reviewId?: string;
+interface StudySessionMetrics {
+  totalConcepts: number;
+  conceptsReviewed: number;
+  mastered: number;
+  reviewing: number;
+  timeSpent: number;
+  startTime: Date;
+  endTime?: Date;
+}
+
+enum StudyMode {
+  STUDY = 'study',
+  REVIEW = 'review',
+  QUIZ = 'quiz'
 }
 
 const StudyModePage = () => {
+  // Estado para la navegación y selección del usuario
+  const navigate = useNavigate();
   const [notebooks, setNotebooks] = useState<Notebook[]>([]);
   const [selectedNotebook, setSelectedNotebook] = useState<Notebook | null>(null);
+  const [studyMode, setStudyMode] = useState<StudyMode>(StudyMode.STUDY);
+  
+  // Estado para los conceptos y la sesión de estudio
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [allConcepts, setAllConcepts] = useState<Concept[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [studyStarted, setStudyStarted] = useState(false);
-  const [isSessionComplete, setIsSessionComplete] = useState(false);
   const [currentConcepts, setCurrentConcepts] = useState<Concept[]>([]);
-  const [conceptsRemaining, setConceptsRemaining] = useState<number>(0);
-  const [conceptsCompleted, setConceptsCompleted] = useState<number>(0);
-  const [showReviewMode, setShowReviewMode] = useState<boolean>(false);
-  const [pendingReview, setPendingReview] = useState<number>(0);
-  const navigate = useNavigate();
-
-  // Estados para el sistema de retroalimentación
-  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
-  const [feedbackType, setFeedbackType] = useState<'success' | 'info' | 'warning' | null>(null);
-  const [showFeedback, setShowFeedback] = useState<boolean>(false);
-
-  // Nueva variable para almacenar la sesión actual
-  const [sessionStats, setSessionStats] = useState({
+  const [reviewQueue, setReviewQueue] = useState<Concept[]>([]);
+  
+  // Estado para métricas y progreso
+  const [metrics, setMetrics] = useState<StudySessionMetrics>({
+    totalConcepts: 0,
+    conceptsReviewed: 0,
     mastered: 0,
-    toReview: 0,
-    total: 0
+    reviewing: 0,
+    timeSpent: 0,
+    startTime: new Date()
   });
-
-  // Función para mostrar retroalimentación
-  const displayFeedback = (type: 'success' | 'info' | 'warning', message: string) => {
-    setFeedbackType(type);
-    setFeedbackMessage(message);
-    setShowFeedback(true);
-    
-    // Ocultar después de 1.5 segundos
-    setTimeout(() => {
-      setShowFeedback(false);
-    }, 1500);
-  };
-
-  // Cargar cuadernos del usuario al inicio
+  
+  // Estado de UI 
+  const [loading, setLoading] = useState<boolean>(true);
+  const [sessionActive, setSessionActive] = useState<boolean>(false);
+  const [sessionComplete, setSessionComplete] = useState<boolean>(false);
+  const [feedback, setFeedback] = useState<{
+    visible: boolean;
+    message: string;
+    type: 'success' | 'info' | 'warning';
+  }>({
+    visible: false,
+    message: '',
+    type: 'info'
+  });
+  
+  // Usar nuestro hook de servicio personalizado
+  const studyService = useStudyService();
+  
+  // Timer para tracking de tiempo de estudio
+  const [sessionTimer, setSessionTimer] = useState<number | null>(null);
+  
+  // Cargar cuadernos del usuario
   useEffect(() => {
     const fetchNotebooks = async () => {
-      if (!auth.currentUser) return;
-
+      if (!auth.currentUser) {
+        navigate('/login');
+        return;
+      }
+      
       try {
         setLoading(true);
-
+        
+        // Obtener cuadernos del usuario
         const notebooksQuery = query(
           collection(db, 'notebooks'),
           where('userId', '==', auth.currentUser.uid)
         );
-
+        
         const notebooksSnapshot = await getDocs(notebooksQuery);
-
-        if (notebooksSnapshot.empty) {
-          setLoading(false);
-          return;
-        }
-
         const notebooksData = notebooksSnapshot.docs.map(doc => ({
           id: doc.id,
           title: doc.data().title,
           color: doc.data().color || '#6147FF'
         }));
-
+        
         setNotebooks(notebooksData);
-
-        // Si solo hay un cuaderno, seleccionarlo automáticamente
-        if (notebooksData.length === 1) {
+        
+        // Restaurar último cuaderno usado
+        const lastNotebookId = localStorage.getItem('lastStudyNotebookId');
+        if (lastNotebookId && notebooksData.length > 0) {
+          const lastNotebook = notebooksData.find(n => n.id === lastNotebookId);
+          if (lastNotebook) {
+            setSelectedNotebook(lastNotebook);
+          }
+        } else if (notebooksData.length === 1) {
+          // Si solo hay un cuaderno, seleccionarlo automáticamente
           setSelectedNotebook(notebooksData[0]);
-          fetchConcepts(notebooksData[0].id);
-        } else {
-          setLoading(false);
         }
+        
+        setLoading(false);
       } catch (error) {
         console.error("Error al cargar cuadernos:", error);
+        showFeedback('warning', 'Error al cargar tus cuadernos');
         setLoading(false);
       }
     };
-
-    fetchNotebooks();
-  }, []);
-
-  // Usar useEffect para verificar si hay un cuaderno guardado en el almacenamiento local
-  useEffect(() => {
-    const storedNotebookId = localStorage.getItem('lastNotebookId');
     
-    if (storedNotebookId && notebooks.length > 0) {
-      const storedNotebook = notebooks.find(notebook => notebook.id === storedNotebookId);
-      
-      if (storedNotebook) {
-        handleSelectNotebook(storedNotebook);
-      }
-    }
-  }, [notebooks]);
-
-  // Cargar conceptos pendientes cuando se selecciona un cuaderno
+    fetchNotebooks();
+  }, [navigate]);
+  
+  // Cuando se selecciona un cuaderno, cargar estadísticas de estudio
   useEffect(() => {
-    if (selectedNotebook && auth.currentUser) {
-      checkPendingReview();
+    const loadNotebookStats = async () => {
+      if (!selectedNotebook || !auth.currentUser) return;
+      
+      try {
+        // Verificar si hay conceptos pendientes de repaso
+        const reviewableCount = await studyService.getReviewableConceptsCount(
+          auth.currentUser.uid, 
+          selectedNotebook.id
+        );
+        
+        // Obtener conteos de conceptos por estado
+        const conceptStats = await studyService.getConceptStats(
+          auth.currentUser.uid, 
+          selectedNotebook.id
+        );
+        
+        // Basado en las estadísticas, mostrar recomendaciones
+        if (reviewableCount > 0) {
+          showFeedback('info', `Tienes ${reviewableCount} conceptos listos para repasar hoy`);
+        }
+      } catch (error) {
+        console.error("Error al cargar estadísticas:", error);
+      }
+    };
+    
+    if (selectedNotebook) {
+      loadNotebookStats();
+      localStorage.setItem('lastStudyNotebookId', selectedNotebook.id);
     }
   }, [selectedNotebook]);
-
-  // Comprobar conceptos pendientes de repaso
-  const checkPendingReview = async () => {
-    if (!selectedNotebook || !auth.currentUser) return;
+  
+  // Mostrar mensajes de feedback
+  const showFeedback = (type: 'success' | 'info' | 'warning', message: string) => {
+    setFeedback({
+      visible: true,
+      type,
+      message
+    });
     
-    try {
-      const reviewQuery = query(
-        collection(db, 'reviewConcepts'),
-        where('notebookId', '==', selectedNotebook.id),
-        where('userId', '==', auth.currentUser.uid)
-      );
-      
-      const reviewSnapshot = await getDocs(reviewQuery);
-      const pendingCount = reviewSnapshot.docs.length;
-      
-      setPendingReview(pendingCount);
-      
-      // Si estamos en modo repaso pero no hay conceptos, mostrar mensaje
-      if (showReviewMode && pendingCount === 0) {
-        displayFeedback('info', 'No hay conceptos pendientes para repasar');
-        setShowReviewMode(false);
-      }
-    } catch (error) {
-      console.error("Error al cargar conceptos para repaso:", error);
-    }
+    // Ocultarlo automáticamente después de 2 segundos
+    setTimeout(() => {
+      setFeedback(prev => ({ ...prev, visible: false }));
+    }, 2000);
   };
-
-  // Reemplazo de la función fetchConcepts
-  const fetchConcepts = useCallback(async (notebookId: string) => {
-    if (!notebookId) return;
-
-    try {
-      setLoading(true);
-
-      // Primero cargamos la información de conceptos pendientes de repaso
-      const pendingQuery = query(
-        collection(db, 'reviewConcepts'),
-        where('notebookId', '==', notebookId),
-        where('userId', '==', auth.currentUser?.uid)
-      );
-      
-      const pendingSnapshot = await getDocs(pendingQuery);
-      const pendingCount = pendingSnapshot.docs.length;
-      setPendingReview(pendingCount);
-
-      // Si estamos en modo repaso, cargamos los conceptos guardados para repasar
-      if (showReviewMode) {
-        if (pendingSnapshot.empty) {
-          setLoading(false);
-          setAllConcepts([]);
-          setCurrentConcepts([]);
-          setConceptsRemaining(0);
-          displayFeedback('info', 'No hay conceptos pendientes de repaso');
-          return;
-        }
-        
-        // Procesar conceptos guardados para repaso
-        const reviewConceptsPromises = pendingSnapshot.docs.map(async (reviewDoc) => {
-          const data = reviewDoc.data();
-          
-          try {
-            // Obtener el concepto original
-            const conceptDoc = await getDoc(doc(db, 'conceptos', data.conceptDocId));
-            if (!conceptDoc.exists()) return null;
-            
-            const conceptos = conceptDoc.data().conceptos;
-            const originalConcept = conceptos[data.conceptIndex];
-            
-            if (!originalConcept) return null;
-            
-            return {
-              ...originalConcept,
-              docId: data.conceptDocId,
-              index: data.conceptIndex,
-              id: `${data.conceptDocId}-${data.conceptIndex}`,
-              reviewId: reviewDoc.id
-            };
-          } catch (error) {
-            console.error("Error al cargar concepto para repaso:", error);
-            return null;
-          }
-        });
-        
-        const reviewConcepts = await Promise.all(reviewConceptsPromises);
-        
-        // Filtrar nulos (conceptos que ya no existen)
-        const validConcepts = reviewConcepts.filter(c => c !== null) as Concept[];
-        
-        // Barajar conceptos para una experiencia más dinámica
-        const shuffledConcepts = validConcepts.sort(() => 0.5 - Math.random());
-        
-        setAllConcepts(shuffledConcepts);
-        setCurrentConcepts(shuffledConcepts);
-        setConceptsRemaining(shuffledConcepts.length);
-        setSessionStats({
-          mastered: 0,
-          toReview: 0,
-          total: shuffledConcepts.length
-        });
-        
-        setLoading(false);
-        return;
-      }
-
-      // Modo de estudio normal - cargamos todos los conceptos
-      const conceptsQuery = query(
-        collection(db, 'conceptos'),
-        where('cuadernoId', '==', notebookId)
-      );
-
-      const conceptsSnapshot = await getDocs(conceptsQuery);
-
-      if (conceptsSnapshot.empty) {
-        setLoading(false);
-        setAllConcepts([]);
-        setCurrentConcepts([]);
-        return;
-      }
-
-      // Procesar documentos para obtener todos los conceptos
-      let allConceptsData: Concept[] = [];
-
-      conceptsSnapshot.docs.forEach(doc => {
-        const conceptosData = doc.data().conceptos || [];
-
-        // Agregar ID del documento y metadatos a cada concepto
-        const conceptosWithIds = conceptosData.map((concepto: any, index: number) => ({
-          ...concepto,
-          docId: doc.id,
-          index,
-          id: `${doc.id}-${index}`
-        }));
-
-        allConceptsData = [...allConceptsData, ...conceptosWithIds];
-      });
-
-      // Filtrar conceptos que ya están en la lista de repaso para evitar duplicados
-      if (pendingCount > 0) {
-        const pendingIds = new Set(
-          pendingSnapshot.docs.map(doc => {
-            const data = doc.data();
-            return `${data.conceptDocId}-${data.conceptIndex}`;
-          })
-        );
-        
-        // Filtramos los conceptos que NO están en pendingIds
-        allConceptsData = allConceptsData.filter(concept => !pendingIds.has(concept.id));
-      }
-
-      // Seleccionar conceptos aleatorios para la sesión de estudio (máx. 20)
-      const shuffled = allConceptsData.sort(() => 0.5 - Math.random());
-      const selected = shuffled.slice(0, Math.min(20, shuffled.length));
-
-      setAllConcepts(allConceptsData);
-      setCurrentConcepts(selected);
-      setConceptsRemaining(selected.length);
-      setSessionStats({
-        mastered: 0,
-        toReview: 0,
-        total: selected.length
-      });
-      
-      setLoading(false);
-    } catch (error) {
-      console.error("Error al cargar conceptos:", error);
-      setLoading(false);
-      displayFeedback('warning', 'Error al cargar conceptos');
-    }
-  }, [showReviewMode]);
-
-  // Manejar selección de cuaderno
-  const handleSelectNotebook = (notebook: Notebook) => {
-    setSelectedNotebook(notebook);
-    localStorage.setItem('lastNotebookId', notebook.id);
-    fetchConcepts(notebook.id);
-  };
-
-  // Iniciar sesión de estudio
-  const handleStartStudy = () => {
-    if (currentConcepts.length === 0) {
-      displayFeedback('warning', 'No hay conceptos disponibles para estudiar');
+  
+  // Iniciar nueva sesión de estudio
+  const startStudySession = async () => {
+    if (!selectedNotebook || !auth.currentUser) {
+      showFeedback('warning', 'Debes seleccionar un cuaderno primero');
       return;
     }
-
-    setStudyStarted(true);
-    setConceptsCompleted(0);
-
-    // Registrar inicio de sesión de estudio en actividad
-    logStudyActivity('study_session_started', showReviewMode ? 'Sesión de repaso' : 'Sesión de estudio');
-  };
-
-  // Manejar concepto completado
-  const handleConceptComplete = async (conceptId: string) => {
-    // Mostrar mensaje de retroalimentación
-    displayFeedback('success', '¡Concepto dominado!');
     
-    // Encontrar el concepto en la lista actual
-    const conceptIndex = currentConcepts.findIndex(c => c.id === conceptId);
-    if (conceptIndex === -1) return;
+    setLoading(true);
     
-    const concept = currentConcepts[conceptIndex];
-    
-    // Si estamos en modo repaso y existe un reviewId, eliminamos el concepto de la colección de repaso
-    if (showReviewMode && concept.reviewId) {
-      try {
-        await deleteDoc(doc(db, 'reviewConcepts', concept.reviewId));
-        // Actualizar contador de pendientes
-        setPendingReview(prev => Math.max(0, prev - 1));
-      } catch (error) {
-        console.error("Error al eliminar concepto de repaso:", error);
-      }
-    }
-    
-    // Incrementar contador de completados
-    setConceptsCompleted(prev => prev + 1);
-    
-    // Actualizar estadísticas de la sesión
-    setSessionStats(prev => ({
-      ...prev,
-      mastered: prev.mastered + 1
-    }));
-    
-    // Remover concepto de la lista actual
-    const updatedConcepts = [...currentConcepts];
-    updatedConcepts.splice(conceptIndex, 1);
-    setCurrentConcepts(updatedConcepts);
-    
-    // Actualizar conceptos restantes
-    const newRemaining = updatedConcepts.length;
-    setConceptsRemaining(newRemaining);
-    
-    // Verificar si la sesión está completa
-    if (newRemaining <= 0) {
-      setIsSessionComplete(true);
-      logStudyActivity('study_session_completed', 'Sesión completada');
-    }
-    
-    // Registrar actividad
-    logStudyActivity('concept_mastered', 
-      `Concepto dominado: ${concept.término || 'Concepto'}`);
-  };
-
-  // Manejar concepto para repasar después
-  const handleConceptLater = async (conceptId: string) => {
-    // Mostrar mensaje de retroalimentación
-    displayFeedback('info', 'Repasar más tarde');
-    
-    // Encontrar el concepto en la lista actual
-    const conceptIndex = currentConcepts.findIndex(c => c.id === conceptId);
-    if (conceptIndex === -1) return;
-    
-    const concept = currentConcepts[conceptIndex];
-    
-    // Si NO estamos en modo repaso, guardar para repaso posterior
-    if (!showReviewMode) {
-      // Al inicio de handleConceptLater:
-      if (!auth.currentUser) {
-        console.error("Usuario no autenticado");
-        displayFeedback('warning', 'Debes iniciar sesión para guardar conceptos');
-        return;
-      }
-
-      if (!selectedNotebook?.id) {
-        console.error("ID de cuaderno no definido");
-        displayFeedback('warning', 'Error al identificar el cuaderno');
-        return;
-      }
-
-      console.log("Intentando guardar concepto para repaso con los siguientes datos:", {
-        userId: auth.currentUser.uid,
-        notebookId: selectedNotebook.id,
-        conceptDocId: concept.docId,
-        conceptIndex: concept.index
-      });
-
-      try {
-        // Verificar si ya existe en la colección de repaso
-        const existingQuery = query(
-          collection(db, 'reviewConcepts'),
-          where('userId', '==', auth.currentUser.uid),
-          where('notebookId', '==', selectedNotebook.id),
-          where('conceptDocId', '==', concept.docId),
-          where('conceptIndex', '==', concept.index)
+    try {
+      // Crear nueva sesión en Firestore
+      const session = await studyService.createStudySession(
+        auth.currentUser.uid, 
+        selectedNotebook.id,
+        studyMode
+      );
+      
+      setSessionId(session.id);
+      
+      // Cargar conceptos según el modo seleccionado
+      let concepts: Concept[];
+      
+      if (studyMode === StudyMode.REVIEW) {
+        // En modo repaso, cargar solo conceptos que están listos para repasar hoy
+        concepts = await studyService.getDueConceptsForReview(
+          auth.currentUser.uid,
+          selectedNotebook.id
         );
         
-        const existingSnapshot = await getDocs(existingQuery);
-        
-        if (existingSnapshot.empty) {
-          // Guardar en la colección de conceptos para repaso con valores garantizados
-          await addDoc(collection(db, 'reviewConcepts'), {
-            userId: auth.currentUser.uid,
-            notebookId: selectedNotebook.id,
-            conceptDocId: concept.docId,
-            conceptIndex: concept.index,
-            createdAt: new Date()
-          });
-          
-          // Actualizar contador de pendientes
-          setPendingReview(prev => prev + 1);
-          
-          // Actualizar estadísticas de la sesión
-          setSessionStats(prev => ({
-            ...prev,
-            toReview: prev.toReview + 1
-          }));
+        if (concepts.length === 0) {
+          showFeedback('info', 'No hay conceptos pendientes para repasar');
+          // Sugiero cambiar al modo de estudio
+          setStudyMode(StudyMode.STUDY);
+          concepts = await studyService.getNewConceptsForStudy(
+            auth.currentUser.uid,
+            selectedNotebook.id
+          );
         }
-      } catch (error) {
-        console.error("Error detallado al guardar concepto para repaso:", error);
-        console.log("Estado de autenticación:", !!auth.currentUser);
-        console.log("ID de usuario:", auth.currentUser?.uid);
-        displayFeedback('warning', 'Error al guardar para repaso');
+      } else if (studyMode === StudyMode.QUIZ) {
+        // En modo evaluación, seleccionar mezcla de conceptos aprendidos recientemente
+        concepts = await studyService.getConceptsForQuiz(
+          auth.currentUser.uid,
+          selectedNotebook.id
+        );
+      } else {
+        // Modo estudio estándar, priorizar conceptos no estudiados aún
+        concepts = await studyService.getNewConceptsForStudy(
+          auth.currentUser.uid,
+          selectedNotebook.id
+        );
       }
-    } else if (concept.reviewId) {
-      // Si estamos en modo repaso, lo mantenemos para la próxima sesión
-      // No eliminamos el documento de repaso
-      displayFeedback('info', 'Concepto guardado para repaso futuro');
-    }
-    
-    // Remover concepto de la lista actual
-    const updatedConcepts = [...currentConcepts];
-    updatedConcepts.splice(conceptIndex, 1);
-    setCurrentConcepts(updatedConcepts);
-    
-    // Actualizar conceptos restantes
-    const newRemaining = updatedConcepts.length;
-    setConceptsRemaining(newRemaining);
-    
-    // Verificar si la sesión está completa
-    if (newRemaining <= 0) {
-      setIsSessionComplete(true);
-      logStudyActivity('study_session_completed', 'Sesión completada');
-    }
-    
-    // Registrar actividad
-    logStudyActivity('concept_review_later',
-      `Repasar después: ${concept.término || 'Concepto'}`);
-  };
-
-  // Registrar actividad de estudio
-  const logStudyActivity = async (type: string, title: string) => {
-    if (!auth.currentUser || !selectedNotebook) return;
-
-    try {
-      // Crear nuevo documento de actividad
-      const newActivity = {
-        userId: auth.currentUser.uid,
-        type,
-        title,
-        timestamp: new Date(),
-        notebookId: selectedNotebook.id
-      };
-
-      console.log("Actividad registrada:", newActivity);
       
-      // En una implementación real se guardaría en Firestore:
-      // await addDoc(collection(db, 'userActivities'), newActivity);
+      // Optimizar mezclando adecuadamente para mejor retención
+      const optimizedConcepts = studyService.optimizeConceptOrder(concepts);
+      
+      setAllConcepts(optimizedConcepts);
+      setCurrentConcepts(optimizedConcepts);
+      
+      // Inicializar métricas para esta sesión
+      setMetrics({
+        totalConcepts: optimizedConcepts.length,
+        conceptsReviewed: 0,
+        mastered: 0,
+        reviewing: 0,
+        timeSpent: 0,
+        startTime: new Date()
+      });
+      
+      // Iniciar tracking de tiempo
+      const timer = window.setInterval(() => {
+        setMetrics(prev => ({
+          ...prev,
+          timeSpent: prev.timeSpent + 1
+        }));
+      }, 1000);
+      
+      setSessionTimer(timer);
+      setSessionActive(true);
+      setLoading(false);
+      
+      // Registro de actividad
+      await studyService.logStudyActivity(
+        auth.currentUser.uid,
+        'session_started',
+        `Sesión de ${studyMode === StudyMode.REVIEW ? 'repaso' : studyMode === StudyMode.QUIZ ? 'evaluación' : 'estudio'} iniciada`
+      );
+      
     } catch (error) {
-      console.error("Error al registrar actividad:", error);
+      console.error("Error al iniciar sesión de estudio:", error);
+      showFeedback('warning', 'Error al iniciar la sesión de estudio');
+      setLoading(false);
     }
   };
-
-  // Finalizar sesión de estudio
-  const handleFinishSession = () => {
-    setStudyStarted(false);
-    setIsSessionComplete(false);
+  
+  // Manejar respuesta a concepto (usando el algoritmo SM-2 adaptado)
+  const handleConceptResponse = async (conceptId: string, quality: ResponseQuality) => {
+    if (!auth.currentUser || !sessionId) return;
+    
+    try {
+      // Procesar la respuesta con el algoritmo SRS
+      await studyService.processConceptResponse(
+        auth.currentUser.uid,
+        conceptId,
+        quality,
+        sessionId
+      );
+      
+      // Encontrar el concepto en nuestros datos actuales
+      const conceptIndex = currentConcepts.findIndex(c => c.id === conceptId);
+      if (conceptIndex === -1) return;
+      
+      // Actualizar métricas según la calidad de respuesta
+      setMetrics(prev => ({
+        ...prev,
+        conceptsReviewed: prev.conceptsReviewed + 1,
+        mastered: quality >= ResponseQuality.Good ? prev.mastered + 1 : prev.mastered,
+        reviewing: quality < ResponseQuality.Good ? prev.reviewing + 1 : prev.reviewing
+      }));
+      
+      // Mostrar feedback apropiado según la calidad de respuesta
+      if (quality >= ResponseQuality.Good) {
+        showFeedback('success', '¡Bien hecho!');
+      } else if (quality >= ResponseQuality.Difficult) {
+        showFeedback('info', 'Seguiremos practicando este concepto');
+      } else {
+        showFeedback('warning', 'Concepto para repasar');
+      }
+      
+      // Si la calidad es baja, añadir a la cola de repaso para esta sesión
+      if (quality < ResponseQuality.Difficult && studyMode !== StudyMode.REVIEW) {
+        setReviewQueue(prev => [...prev, currentConcepts[conceptIndex]]);
+      }
+      
+      // Eliminar concepto de la lista actual
+      const updatedConcepts = [...currentConcepts];
+      updatedConcepts.splice(conceptIndex, 1);
+      setCurrentConcepts(updatedConcepts);
+      
+      // Verificar si debemos finalizar la sesión
+      if (updatedConcepts.length === 0) {
+        // Si hay conceptos en la cola de repaso, mostrarlos ahora
+        if (reviewQueue.length > 0) {
+          showFeedback('info', 'Repasando conceptos difíciles...');
+          setCurrentConcepts([...reviewQueue]);
+          setReviewQueue([]);
+        } else {
+          // Finalizar sesión
+          completeStudySession();
+        }
+      }
+    } catch (error) {
+      console.error("Error al procesar respuesta:", error);
+      showFeedback('warning', 'Error al guardar tu progreso');
+    }
+  };
+  
+  // Completar la sesión de estudio
+  const completeStudySession = async () => {
+    if (!sessionId || !auth.currentUser) return;
+    
+    // Detener el timer
+    if (sessionTimer) {
+      clearInterval(sessionTimer);
+      setSessionTimer(null);
+    }
+    
+    // Marcar hora de finalización
+    const endTime = new Date();
+    setMetrics(prev => ({
+      ...prev,
+      endTime
+    }));
+    
+    try {
+      // Guardar estadísticas en Firestore
+      await studyService.completeStudySession(
+        sessionId,
+        {
+          ...metrics,
+          endTime
+        }
+      );
+      
+      // Registrar actividad
+      await studyService.logStudyActivity(
+        auth.currentUser.uid,
+        'session_completed',
+        `Sesión completada: ${metrics.conceptsReviewed} conceptos revisados, ${metrics.mastered} dominados`
+      );
+      
+      setSessionComplete(true);
+      setSessionActive(false);
+      
+    } catch (error) {
+      console.error("Error al completar sesión:", error);
+      showFeedback('warning', 'Error al guardar estadísticas de la sesión');
+      
+      // Aún así mostramos el resumen
+      setSessionComplete(true);
+      setSessionActive(false);
+    }
+  };
+  
+  // Calcular próxima sesión recomendada basada en algoritmo SRS
+  const getNextRecommendedSession = async () => {
+    if (!auth.currentUser || !selectedNotebook) return null;
+    
+    try {
+      return await studyService.getNextRecommendedReviewDate(
+        auth.currentUser.uid,
+        selectedNotebook.id
+      );
+    } catch (error) {
+      console.error("Error al calcular próxima sesión:", error);
+      return null;
+    }
+  };
+  
+  // Iniciar nueva sesión con mismo cuaderno
+  const startNewSession = () => {
+    // Reiniciar estados para nueva sesión
+    setSessionComplete(false);
+    setSessionActive(false);
+    setAllConcepts([]);
     setCurrentConcepts([]);
-    setConceptsCompleted(0);
-    setConceptsRemaining(0);
+    setReviewQueue([]);
+    setSessionId(null);
     
-    // Guardar el ID del cuaderno en el almacenamiento local
-    if (selectedNotebook) {
-      localStorage.setItem('lastNotebookId', selectedNotebook.id);
-    }
-    
-    // Verificar si hay conceptos pendientes después de la sesión
-    if (selectedNotebook) {
-      checkPendingReview();
-    }
+    // Mantener el notebook seleccionado pero reiniciar todo lo demás
+    setMetrics({
+      totalConcepts: 0,
+      conceptsReviewed: 0,
+      mastered: 0,
+      reviewing: 0,
+      timeSpent: 0,
+      startTime: new Date()
+    });
   };
-
-  // Iniciar nueva sesión con el mismo cuaderno
-  const handleNewSession = () => {
-    if (selectedNotebook) {
-      fetchConcepts(selectedNotebook.id);
-      setIsSessionComplete(false);
-      setStudyStarted(false);
-      setConceptsCompleted(0);
-    }
+  
+  // Formatear el tiempo de estudio
+  const formatStudyTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
-
-  // Reemplazo de la función toggleReviewMode
-  const toggleReviewMode = () => {
-    // Cambiamos el modo
-    setShowReviewMode(prevMode => !prevMode);
-    
-    // Reseteamos los estados importantes para evitar datos inconsistentes
-    setCurrentConcepts([]);
-    setConceptsRemaining(0);
-    
-    // Volvemos a cargar los conceptos con el nuevo modo
-    if (selectedNotebook) {
-      setTimeout(() => {
-        fetchConcepts(selectedNotebook.id);
-      }, 50); // Pequeño retraso para asegurar que showReviewMode ya cambió
-    }
+  
+  // Memoizar el cálculo de conceptos de repaso pendientes
+  const pendingReviewCount = useMemo(() => {
+    if (!selectedNotebook || studyMode !== StudyMode.STUDY) return 0;
+    return reviewQueue.length;
+  }, [selectedNotebook, reviewQueue, studyMode]);
+  
+  // Cálculo de progreso de la sesión
+  const sessionProgress = useMemo(() => {
+    if (metrics.totalConcepts === 0) return 0;
+    return (metrics.conceptsReviewed / metrics.totalConcepts) * 100;
+  }, [metrics.conceptsReviewed, metrics.totalConcepts]);
+  
+  // Funciones para cambiar el modo de estudio
+  const handleModeChange = (mode: StudyMode) => {
+    setStudyMode(mode);
   };
-
-  // Reemplazo de la función renderNotebookSelection
+  
+  // Seleccionar un cuaderno
+  const handleSelectNotebook = (notebook: Notebook) => {
+    setSelectedNotebook(notebook);
+    localStorage.setItem('lastStudyNotebookId', notebook.id);
+  };
+  
+  // Renderizado condicional de pantallas
+  
+  // 1. Renderizar selección de cuaderno
   const renderNotebookSelection = () => {
     return (
       <div className="study-notebook-selection">
         <h2>Selecciona un cuaderno para estudiar</h2>
-
+        
         {notebooks.length === 0 ? (
           <div className="empty-notebooks">
-            <p>No tienes cuadernos creados.</p>
+            <p>No tienes cuadernos creados todavía.</p>
             <button
               className="create-notebook-button"
               onClick={() => navigate('/notebooks')}
             >
-              Crear un cuaderno
+              <i className="fas fa-plus"></i> Crear mi primer cuaderno
             </button>
           </div>
         ) : (
@@ -563,260 +473,294 @@ const StudyModePage = () => {
             ))}
           </div>
         )}
-
+        
         {selectedNotebook && (
-          <div className="start-study-container">
-            <div className="review-toggle">
-              <div className="toggle-container">
-                <span className={`toggle-label ${!showReviewMode ? 'active' : ''}`}>
-                  Modo estudio
-                </span>
-                <label className="toggle-switch">
-                  <input 
-                    type="checkbox" 
-                    checked={showReviewMode}
-                    onChange={toggleReviewMode}
-                  />
-                  <span className="switch-slider"></span>
-                </label>
-                <span className={`toggle-label ${showReviewMode ? 'active' : ''}`}>
-                  Modo repaso
-                </span>
+          <div className="study-options">
+            <div className="study-mode-selector">
+              <h3>Modo de estudio</h3>
+              <div className="mode-buttons">
+                <button
+                  className={`mode-button ${studyMode === StudyMode.STUDY ? 'active' : ''}`}
+                  onClick={() => handleModeChange(StudyMode.STUDY)}
+                >
+                  <i className="fas fa-book"></i>
+                  <span>Estudio</span>
+                  <p className="mode-description">Aprende nuevos conceptos</p>
+                </button>
+                
+                <button
+                  className={`mode-button ${studyMode === StudyMode.REVIEW ? 'active' : ''}`}
+                  onClick={() => handleModeChange(StudyMode.REVIEW)}
+                >
+                  <i className="fas fa-sync-alt"></i>
+                  <span>Repaso</span>
+                  <p className="mode-description">Refuerza conceptos previos</p>
+                </button>
+                
+                <button
+                  className={`mode-button ${studyMode === StudyMode.QUIZ ? 'active' : ''}`}
+                  onClick={() => handleModeChange(StudyMode.QUIZ)}
+                >
+                  <i className="fas fa-check-circle"></i>
+                  <span>Evaluación</span>
+                  <p className="mode-description">Pon a prueba tu memoria</p>
+                </button>
               </div>
-              {pendingReview > 0 && !showReviewMode && (
-                <div className="review-badge-container">
-                  <span className="review-badge">
-                    {pendingReview} pendientes
-                  </span>
-                </div>
-              )}
             </div>
             
             <button
-              className={`start-study-button ${showReviewMode ? 'review-mode' : ''}`}
-              onClick={handleStartStudy}
-              disabled={(showReviewMode && pendingReview === 0) || 
-                      (!showReviewMode && currentConcepts.length === 0)}
+              className="start-session-button"
+              onClick={startStudySession}
+              disabled={loading}
             >
-              <i className={`fas ${showReviewMode ? 'fa-sync-alt' : 'fa-play'}`}></i>
-              {showReviewMode ? 'Comenzar repaso' : 'Comenzar a estudiar'}
-            </button>
-            
-            {/* Botón de Aprendizaje */}
-            <button
-              className="learning-button"
-              onClick={() => selectedNotebook && navigate(`/tools/explain/simple/${selectedNotebook.id}`)}
-              disabled={!selectedNotebook}
-            >
-              <i className="fas fa-lightbulb"></i> Explicación de conceptos
+              {loading ? (
+                <><i className="fas fa-spinner fa-spin"></i> Preparando...</>
+              ) : (
+                <><i className="fas fa-play"></i> Comenzar sesión</>
+              )}
             </button>
           </div>
         )}
       </div>
     );
   };
-
-  // Renderizar sesión de estudio activa
-  const renderStudySession = () => {
-    // Verificamos si hay conceptos disponibles
+  
+  // 2. Renderizar sesión de estudio activa
+  const renderActiveSession = () => {
     if (currentConcepts.length === 0) {
       return (
-        <div className="empty-concepts">
-          <div className="empty-concepts-icon">
-            <i className="fas fa-check-circle"></i>
-          </div>
-          <h3>¡Has completado todos los conceptos!</h3>
-          <p>No hay más conceptos para estudiar en esta sesión.</p>
+        <div className="study-session-empty">
+          <i className="fas fa-check-circle"></i>
+          <h3>¡No hay conceptos disponibles!</h3>
+          <p>Parece que no hay conceptos para estudiar en este momento.</p>
           <button 
-            className="finish-session-button"
-            onClick={() => setIsSessionComplete(true)}
+            className="back-to-selection-button"
+            onClick={startNewSession}
           >
-            Ver resumen
+            Volver a selección
           </button>
         </div>
       );
     }
-
-    // Usar el primer concepto del array actualizado
+    
     const currentConcept = currentConcepts[0];
-
+    
     return (
-      <div className="study-session">
-        {/* Componente de retroalimentación */}
-        {showFeedback && (
-          <div className={`feedback-message ${feedbackType}`}>
-            {feedbackType === 'success' && <i className="fas fa-check-circle"></i>}
-            {feedbackType === 'info' && <i className="fas fa-info-circle"></i>}
-            {feedbackType === 'warning' && <i className="fas fa-exclamation-circle"></i>}
-            <span>{feedbackMessage}</span>
-          </div>
-        )}
-
-        {/* Barra de progreso mejorada */}
-        <div className="study-progress">
+      <div className="study-session-container">
+        {/* Barra de progreso y estadísticas */}
+        <div className="study-progress-bar">
           <div className="progress-text">
             <span>
-              <strong>{conceptsCompleted}</strong> de <strong>{conceptsCompleted + conceptsRemaining}</strong> conceptos
-              <span className="mode-indicator"> · {showReviewMode ? 'Modo Repaso' : 'Modo Estudio'}</span>
+              {metrics.conceptsReviewed} de {metrics.totalConcepts} conceptos
+            </span>
+            <span className="time-counter">
+              <i className="fas fa-clock"></i> {formatStudyTime(metrics.timeSpent)}
             </span>
           </div>
-          <div className="progress-bar">
-            <div
-              className={`progress-fill ${showReviewMode ? 'review-mode' : ''}`}
-              style={{
-                width: `${(conceptsCompleted / (conceptsCompleted + conceptsRemaining)) * 100}%`
-              }}
+          <div className="progress-track">
+            <div 
+              className="progress-fill"
+              style={{ width: `${sessionProgress}%` }}
             ></div>
           </div>
         </div>
-
-        <div className="study-cards-container">
+        
+        {/* Tarjeta de estudio swipeable */}
+        <div className="study-card-container">
           <SwipeableStudyCard
             concept={currentConcept}
-            onComplete={handleConceptComplete}
-            onLater={handleConceptLater}
-            isLast={conceptsRemaining === 1}
-            key={currentConcept.id}
-            reviewMode={showReviewMode}
+            onResponse={(quality) => handleConceptResponse(currentConcept.id, quality)}
+            reviewMode={studyMode === StudyMode.REVIEW}
+            quizMode={studyMode === StudyMode.QUIZ}
           />
         </div>
+        
+        {/* Botones de respuesta (alternativa a swipe) */}
+        <div className="response-buttons">
+          <button 
+            className="response-button difficult"
+            onClick={() => handleConceptResponse(currentConcept.id, ResponseQuality.Difficult)}
+          >
+            <i className="fas fa-redo"></i>
+            <span>Difícil</span>
+          </button>
+          
+          <button 
+            className="response-button ok"
+            onClick={() => handleConceptResponse(currentConcept.id, ResponseQuality.NotSmooth)}
+          >
+            <i className="fas fa-check"></i>
+            <span>Normal</span>
+          </button>
+          
+          <button 
+            className="response-button easy"
+            onClick={() => handleConceptResponse(currentConcept.id, ResponseQuality.Perfect)}
+          >
+            <i className="fas fa-check-double"></i>
+            <span>Fácil</span>
+          </button>
+        </div>
+        
+        {/* Botón para pasar o finalizar */}
+        <button
+          className="session-action-button"
+          onClick={completeStudySession}
+        >
+          Finalizar sesión
+        </button>
       </div>
     );
   };
-
-  // Renderizar pantalla de finalización mejorada
-  const renderSessionComplete = () => {
+  
+  // 3. Renderizar resumen de sesión completada
+  const renderSessionSummary = () => {
+    // Calcular próxima sesión recomendada
+    const [nextSession, setNextSession] = useState<Date | null>(null);
+    
+    useEffect(() => {
+      if (sessionComplete) {
+        getNextRecommendedSession().then(date => {
+          setNextSession(date);
+        });
+      }
+    }, [sessionComplete]);
+    
+    const formatDate = (date: Date) => {
+      return new Intl.DateTimeFormat('es', { 
+        weekday: 'long', 
+        day: 'numeric', 
+        month: 'long' 
+      }).format(date);
+    };
+    
     return (
-      <div className="session-complete">
-        <div className="completion-header">
+      <div className="session-summary">
+        <div className="summary-header">
           <i className="fas fa-trophy"></i>
-          <h2>{showReviewMode ? '¡Repaso completado!' : '¡Sesión completada!'}</h2>
-          <p>Has completado esta sesión de {showReviewMode ? 'repaso' : 'estudio'}.</p>
+          <h2>¡Sesión completada!</h2>
         </div>
-
-        <div className="session-stats">
+        
+        <div className="summary-stats">
+          <div className="stat-item">
+            <div className="stat-icon">
+              <i className="fas fa-book"></i>
+            </div>
+            <div className="stat-value">{metrics.conceptsReviewed}</div>
+            <div className="stat-label">Conceptos estudiados</div>
+          </div>
+          
           <div className="stat-item">
             <div className="stat-icon">
               <i className="fas fa-check-circle"></i>
             </div>
-            <div className="stat-value">{conceptsCompleted}</div>
-            <div className="stat-label">Conceptos revisados</div>
+            <div className="stat-value">{metrics.mastered}</div>
+            <div className="stat-label">Dominados</div>
           </div>
           
           <div className="stat-item">
             <div className="stat-icon">
-              <i className="fas fa-graduation-cap"></i>
+              <i className="fas fa-sync-alt"></i>
             </div>
-            <div className="stat-value">{sessionStats.mastered}</div>
-            <div className="stat-label">Dominados</div>
+            <div className="stat-value">{metrics.reviewing}</div>
+            <div className="stat-label">Para repasar</div>
           </div>
           
-          {!showReviewMode && (
-            <div className="stat-item">
-              <div className="stat-icon">
-                <i className="fas fa-bookmark"></i>
-              </div>
-              <div className="stat-value">{sessionStats.toReview}</div>
-              <div className="stat-label">Para repasar</div>
+          <div className="stat-item">
+            <div className="stat-icon">
+              <i className="fas fa-clock"></i>
             </div>
-          )}
-        </div>
-
-        <div className="session-actions">
-          <button
-            className="action-button secondary"
-            onClick={handleNewSession}
-          >
-            <i className="fas fa-redo"></i>
-            <span>{showReviewMode ? 'Nuevo repaso' : 'Nueva sesión'}</span>
-          </button>
-
-          {showReviewMode && pendingReview > 0 && (
-            <div className="pending-review-info">
-              <p>
-                Aún tienes <strong>{pendingReview}</strong> conceptos pendientes de repaso
-              </p>
-            </div>
-          )}
-
-          {!showReviewMode && sessionStats.toReview > 0 && (
-            <div className="pending-review-info">
-              <p>
-                Has marcado <strong>{sessionStats.toReview}</strong> conceptos para repasar después
-              </p>
-            </div>
-          )}
-
-          <button
-            className="action-button primary"
-            onClick={handleFinishSession}
-          >
-            <i className="fas fa-check"></i>
-            <span>Finalizar</span>
-          </button>
+            <div className="stat-value">{formatStudyTime(metrics.timeSpent)}</div>
+            <div className="stat-label">Tiempo de estudio</div>
+          </div>
         </div>
         
-        {pendingReview > 0 && !showReviewMode && (
-          <button
-            className="switch-to-review-button"
-            onClick={() => {
-              setShowReviewMode(true);
-              handleNewSession();
-            }}
-          >
-            <i className="fas fa-sync-alt"></i>
-            <span>Cambiar a modo repaso ({pendingReview})</span>
-          </button>
+        {nextSession && (
+          <div className="next-session-recommendation">
+            <h3>Próxima sesión recomendada</h3>
+            <p>
+              <i className="fas fa-calendar"></i> {formatDate(nextSession)}
+            </p>
+            <p className="recommendation-text">
+              Estudiar regularmente mejora significativamente la retención a largo plazo.
+            </p>
+          </div>
         )}
+        
+        <div className="summary-actions">
+          <button
+            className="action-button secondary"
+            onClick={startNewSession}
+          >
+            <i className="fas fa-redo"></i> Nueva sesión
+          </button>
+          
+          <button
+            className="action-button primary"
+            onClick={() => navigate('/notebooks')}
+          >
+            <i className="fas fa-home"></i> Volver a inicio
+          </button>
+        </div>
       </div>
     );
   };
-
-  if (loading) {
-    return (
-      <div className="study-mode-container">
-        <div className="loading-container">
-          <div className="spinner"></div>
-          <p>Cargando...</p>
-        </div>
-      </div>
-    );
-  }
-
+  
+  // Renderizado condicional de la página principal
   return (
-    <div className={`study-mode-container ${showReviewMode ? 'review-mode' : ''}`}>
+    <div className={`study-mode-container ${studyMode}`}>
       <header className="study-mode-header">
         <div className="header-content">
           <button
             className="back-button"
             onClick={() => {
-              if (studyStarted) {
-                setIsSessionComplete(true);
+              if (sessionActive) {
+                // Mostrar confirmación antes de salir de sesión activa
+                if (window.confirm("¿Seguro que quieres salir? Tu progreso será guardado.")) {
+                  // Si hay una sesión activa, completarla antes de salir
+                  if (sessionId) {
+                    completeStudySession();
+                  }
+                  navigate('/notebooks');
+                }
               } else {
                 navigate('/notebooks');
               }
             }}
           >
-            {studyStarted ? <i className="fas fa-times"></i> : <i className="fas fa-arrow-left"></i>}
+            {sessionActive ? <i className="fas fa-times"></i> : <i className="fas fa-arrow-left"></i>}
           </button>
-
+          
           <h1>
-            {selectedNotebook ? selectedNotebook.title : ''}
-            {studyStarted && (
-              <span className={`mode-badge ${showReviewMode ? 'review' : 'study'}`}>
-                {showReviewMode ? 'Modo Repaso' : 'Modo Estudio'}
+            {selectedNotebook ? selectedNotebook.title : 'Estudio'}
+            {sessionActive && (
+              <span className={`mode-badge ${studyMode}`}>
+                {studyMode === StudyMode.REVIEW 
+                  ? 'Repaso' 
+                  : studyMode === StudyMode.QUIZ 
+                    ? 'Evaluación' 
+                    : 'Estudio'}
               </span>
             )}
           </h1>
-
+          
           <div className="header-spacer"></div>
         </div>
       </header>
-
+      
       <main className="study-mode-main">
-        {!studyStarted && !isSessionComplete && renderNotebookSelection()}
-        {studyStarted && !isSessionComplete && renderStudySession()}
-        {isSessionComplete && renderSessionComplete()}
+        {/* Mensaje de feedback flotante */}
+        {feedback.visible && (
+          <FeedbackMessage 
+            type={feedback.type} 
+            message={feedback.message} 
+          />
+        )}
+        
+        {/* Renderizado condicional de pantallas */}
+        {!sessionActive && !sessionComplete && renderNotebookSelection()}
+        {sessionActive && renderActiveSession()}
+        {sessionComplete && renderSessionSummary()}
       </main>
     </div>
   );

@@ -5,15 +5,7 @@ import { collection, query, where, getDocs, doc, getDoc, updateDoc, onSnapshot }
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import '../styles/ExplainConcept.css';
 import { useUser } from '../hooks/useUser'; // Importar el hook useUser
-
-// Definimos las interfaces para los tipos
-interface Concept {
-  id: string;
-  term: string;
-  definition: string;
-  docId: string; // ID del documento que contiene este concepto
-  index: number;  // Índice del concepto dentro del array
-}
+import { Concept } from '../types/interfaces';
 
 // Interfaz para el formato de conceptos en Firebase
 interface ConceptDoc {
@@ -103,12 +95,13 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
         conceptDocs.forEach(doc => {
           // Cada documento puede contener múltiples conceptos
           doc.conceptos.forEach((concepto, index) => {
-            transformedConcepts.push({
+            return transformedConcepts.push({
               id: `${doc.id}-${index}`, // Crear un ID único combinando el ID del documento y el índice
-              term: concepto.término,
-              definition: concepto.definición,
-              docId: doc.id,         // Guardamos el ID del documento
-              index: index           // Guardamos el índice del concepto en el array
+              término: concepto.término,
+              definición: concepto.definición,
+              docId: doc.id, // Guardamos el ID del documento
+              index: index,
+              fuente: ''
             });
           });
         });
@@ -239,16 +232,16 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
           prompt = `Explica el siguiente concepto de manera sencilla, como si le hablaras a alguien sin conocimiento técnico. 
           Usa analogías cotidianas. Limita tu respuesta a 3-4 oraciones.
           
-          Concepto: ${concept.term}
-          Definición: ${concept.definition}`;
+          Concepto: ${concept.término}
+          Definición: ${concept.definición}`;
           break;
         case 'related':
           prompt = `Explica cómo el siguiente concepto se relaciona con otros conceptos del mismo campo. 
           Menciona 2-3 conceptos relacionados y explica brevemente sus conexiones.
           Limita tu respuesta a 3-4 oraciones.
           
-          Concepto: ${concept.term}
-          Definición: ${concept.definition}`;
+          Concepto: ${concept.término}
+          Definición: ${concept.definición}`;
           break;
         case 'interests':
           // Verificamos si hay intereses disponibles y filtramos los vacíos
@@ -260,8 +253,8 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
             
             INTERESES DEL ESTUDIANTE: ${filteredInterests.join(', ')}.
             
-            CONCEPTO A EXPLICAR: "${concept.term}"
-            DEFINICIÓN: "${concept.definition}"
+            CONCEPTO A EXPLICAR: "${concept.término}"
+            DEFINICIÓN: "${concept.definición}"
             
             INSTRUCCIONES:
             1. Explica de manera clara cómo este concepto académico se relaciona directamente con los intereses listados del estudiante.
@@ -298,13 +291,13 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
 
           PROHIBIDO usar: "*" ni siquiera para poner en negritas.
           
-          Concepto: ${concept.term}
-          Definición: ${concept.definition}`;
+          Concepto: ${concept.término}
+          Definición: ${concept.definición}`;
           break;
         default:
           prompt = `Explica el siguiente concepto brevemente:
-          Concepto: ${concept.term}
-          Definición: ${concept.definition}`;
+          Concepto: ${concept.término}
+          Definición: ${concept.definición}`;
       }
       
       // Llamar a la API de Gemini
@@ -340,6 +333,11 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
         throw new Error('Concepto no encontrado');
       }
 
+      // Verificar que concept.docId no es undefined
+      if (!concept.docId) {
+        throw new Error('ID de documento no disponible');
+      }
+      
       // Obtener el documento actual
       const conceptoRef = doc(db, 'conceptos', concept.docId);
       const conceptoSnap = await getDoc(conceptoRef);
@@ -350,6 +348,11 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
       
       // Obtener la lista completa de conceptos
       const allConceptos = conceptoSnap.data().conceptos;
+      
+      // Verificar que el índice existe
+      if (concept.index === undefined) {
+        throw new Error("Índice de concepto no definido");
+      }
       
       // Obtener las notas actuales (si existen)
       const currentNotes = allConceptos[concept.index].notasPersonales || '';
@@ -396,8 +399,11 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
     if (!selectedConcept) return null;
     
     const concept = concepts.find(c => c.id === selectedConcept);
-    return concept?.definition || null;
+    return concept?.definición || null;
   };
+
+  // Create a document reference correctly
+  const docRef = doc(db, "collection", "documentId");
 
   return (
     <div className="explain-concept-container">
@@ -425,7 +431,7 @@ const ExplainConcept: React.FC<ExplainConceptProps> = ({ notebookId: propNoteboo
           <option value="">Selecciona un concepto</option>
           {concepts.map((concept) => (
             <option key={concept.id} value={concept.id}>
-              {concept.term}
+              {concept.término}
             </option>
           ))}
         </select>

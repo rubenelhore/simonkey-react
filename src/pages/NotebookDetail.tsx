@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { db, auth } from '../services/firebase';
+import { Concept } from '../types/interfaces';
+
 import { 
   doc, 
   getDoc, 
@@ -35,12 +37,6 @@ interface ConceptDoc {
   creadoEn: Date;
 }
 
-interface Concept {
-  término: string;
-  definición: string;
-  fuente: string;
-}
-
 // Function to convert Uint8Array to base64 string
 function arrayBufferToBase64(buffer: Uint8Array | ArrayBuffer): string {
   // If buffer is ArrayBuffer, convert to Uint8Array
@@ -69,6 +65,7 @@ const NotebookDetail = () => {
   const [model, setModel] = useState<any>(null);
   const [apiKeyError, setApiKeyError] = useState<boolean>(false);
   const [nuevoConcepto, setNuevoConcepto] = useState<Concept>({
+    id:  '',
     término: '',
     definición: '',
     fuente: 'Manual'
@@ -380,7 +377,8 @@ const NotebookDetail = () => {
       const conceptoManual: Concept = {
         término: nuevoConcepto.término,
         definición: nuevoConcepto.definición,
-        fuente: nuevoConcepto.fuente || 'Manual'
+        fuente: nuevoConcepto.fuente || 'Manual',
+        id: ''
       };
 
       let updatedConceptosDoc: ConceptDoc | null = null;
@@ -428,6 +426,7 @@ const NotebookDetail = () => {
 
       // Limpiar el formulario
       setNuevoConcepto({
+        id: '',
         término: '',
         definición: '',
         fuente: 'Manual'

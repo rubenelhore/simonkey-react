@@ -3,26 +3,21 @@ import React, { useState, useEffect } from 'react';
 import { useSwipe } from '../../hooks/useSwipe';
 import './SwipeableStudyCard.css';
 import TextToSpeech from '../TextToSpeech';
-
-// Define interfaces for component props
-interface Concept {
-  id: string;
-  término: string;
-  definición: string;
-  fuente: string;
-  docId?: string;
-  index?: number;
-}
+import { Concept, ResponseQuality } from '../../types/interfaces';
 
 interface SwipeableStudyCardProps {
   concept: Concept;
-  onComplete: (conceptId: string) => void;
-  onLater: (conceptId: string) => void;
-  isLast: boolean;
-  reviewMode: boolean; // Añadido reviewMode a las props
+  reviewMode: boolean;
+  quizMode: boolean;
+  onResponse: (quality: ResponseQuality) => Promise<void>;
 }
 
-const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({ concept, onComplete, onLater, isLast, reviewMode }) => {
+const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({ 
+  concept, 
+  reviewMode, 
+  quizMode,
+  onResponse 
+}) => {
   const [flipped, setFlipped] = useState(false);
   const [confidence, setConfidence] = useState<string | null>(null);
   const [exitDirection, setExitDirection] = useState<string | null>(null);
@@ -30,13 +25,11 @@ const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({ concept, onComp
   const [touchStartY, setTouchStartY] = useState<number | null>(null);
   const [dragOffsetY, setDragOffsetY] = useState(0);
   
-  // Configurar hook de swipe
   const { swipeHandlers, swipeDirection, swiping, resetSwipe } = useSwipe({
     threshold: 100,
     timeout: 500
   });
   
-  // Manejar swipe
   useEffect(() => {
     if (swipeDirection) {
       handleSwipe(swipeDirection);
@@ -44,32 +37,27 @@ const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({ concept, onComp
     }
   }, [swipeDirection, resetSwipe]);
   
-  // Modifica la función handleSwipe para incluir una callback
   const handleSwipe = (direction: string) => {
     if (direction === 'left' || direction === 'right') {
       setExitDirection(direction);
       setIsExiting(true);
       
-      // Esperar a que termine la animación para notificar al padre
       setTimeout(() => {
         if (direction === 'right') {
-          onComplete(concept.id);  // Eliminado el segundo parámetro
+          onResponse(ResponseQuality.Perfect);
         } else {
-          onLater(concept.id);
+          onResponse(ResponseQuality.Difficult);
         }
       }, 300);
     }
   };
   
-  // Manejar tap para voltear la tarjeta
   const handleCardTap = (e: React.MouseEvent) => {
-    // Solo considerar taps, no swipes
     if (!swiping) {
       setFlipped(!flipped);
     }
   };
   
-  // Manejar drag vertical para voltear tarjeta
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchStartY(e.touches[0].clientY);
   };
@@ -80,7 +68,6 @@ const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({ concept, onComp
     const currentY = e.touches[0].clientY;
     const deltaY = currentY - touchStartY;
     
-    // Limitar el arrastre vertical
     const maxDrag = 100;
     const drag = Math.max(-maxDrag, Math.min(maxDrag, deltaY));
     
@@ -88,7 +75,6 @@ const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({ concept, onComp
   };
   
   const handleTouchEnd = (e: React.TouchEvent<Element>) => {
-    // Si el arrastre es significativo, voltear la tarjeta
     if (Math.abs(dragOffsetY) > 50) {
       setFlipped(!flipped);
     }
@@ -97,7 +83,6 @@ const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({ concept, onComp
     setDragOffsetY(0);
   };
   
-  // Combinar handlers de swipe y drag
   const handlers = {
     ...swipeHandlers,
     onTouchStart: (e: React.TouchEvent) => {
@@ -115,7 +100,6 @@ const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({ concept, onComp
     onClick: handleCardTap
   };
   
-  // Calcular estilos dinámicos
   const getCardStyle = () => {
     let style: React.CSSProperties = {
       transform: `perspective(1000px) rotateX(${dragOffsetY * 0.2}deg)`
@@ -132,7 +116,7 @@ const SwipeableStudyCard: React.FC<SwipeableStudyCardProps> = ({ concept, onComp
   
   return (
     <div
-      className={`swipeable-card ${flipped ? 'flipped' : ''} ${isLast ? 'last-card' : ''}`}
+      className={`swipeable-card ${flipped ? 'flipped' : ''}`}
       style={getCardStyle()}
       {...handlers}
     >

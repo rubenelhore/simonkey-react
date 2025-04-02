@@ -5,6 +5,8 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db, auth } from '../services/firebase';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import '../styles/ProgressPage.css';
+import { Concept } from '../types/interfaces';
+
 
 // Define interfaces for your types
 interface StatsType {
@@ -30,10 +32,6 @@ interface ConceptsByNotebookItem {
   name: string;
   value: number;
   color: string;
-}
-
-interface Concept {
-  dominado: boolean;
 }
 
 interface NotebookType {

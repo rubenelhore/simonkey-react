@@ -7,6 +7,8 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import TextToSpeech from '../components/TextToSpeech';
 import '../styles/TextToSpeech.css';
 import { loadVoiceSettings } from '../hooks/voiceService';
+import { Concept } from '../types/interfaces';
+
 
 // Añade esta función debajo de tus imports:
 
@@ -37,13 +39,6 @@ const triggerAutoRead = (delay = 1000) => {
     return false;
   }, delay);
 };
-
-interface Concept {
-  término: string;
-  definición: string;
-  fuente: string;
-  notasPersonales?: string;
-}
 
 const ConceptDetail = () => {
   const { notebookId, conceptoId, index } = useParams<{ 
