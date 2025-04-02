@@ -151,24 +151,27 @@ const StudyModePage = () => {
     }
   };
 
-  // Función optimizada para cargar conceptos
+  // Reemplazo de la función fetchConcepts
   const fetchConcepts = useCallback(async (notebookId: string) => {
     if (!notebookId) return;
 
     try {
       setLoading(true);
 
+      // Primero cargamos la información de conceptos pendientes de repaso
+      const pendingQuery = query(
+        collection(db, 'reviewConcepts'),
+        where('notebookId', '==', notebookId),
+        where('userId', '==', auth.currentUser?.uid)
+      );
+      
+      const pendingSnapshot = await getDocs(pendingQuery);
+      const pendingCount = pendingSnapshot.docs.length;
+      setPendingReview(pendingCount);
+
       // Si estamos en modo repaso, cargamos los conceptos guardados para repasar
       if (showReviewMode) {
-        const reviewQuery = query(
-          collection(db, 'reviewConcepts'),
-          where('notebookId', '==', notebookId),
-          where('userId', '==', auth.currentUser?.uid)
-        );
-        
-        const reviewSnapshot = await getDocs(reviewQuery);
-        
-        if (reviewSnapshot.empty) {
+        if (pendingSnapshot.empty) {
           setLoading(false);
           setAllConcepts([]);
           setCurrentConcepts([]);
@@ -178,7 +181,7 @@ const StudyModePage = () => {
         }
         
         // Procesar conceptos guardados para repaso
-        const reviewConceptsPromises = reviewSnapshot.docs.map(async (reviewDoc) => {
+        const reviewConceptsPromises = pendingSnapshot.docs.map(async (reviewDoc) => {
           const data = reviewDoc.data();
           
           try {
@@ -225,7 +228,7 @@ const StudyModePage = () => {
         return;
       }
 
-      // Modo de estudio normal
+      // Modo de estudio normal - cargamos todos los conceptos
       const conceptsQuery = query(
         collection(db, 'conceptos'),
         where('cuadernoId', '==', notebookId)
@@ -256,6 +259,19 @@ const StudyModePage = () => {
 
         allConceptsData = [...allConceptsData, ...conceptosWithIds];
       });
+
+      // Filtrar conceptos que ya están en la lista de repaso para evitar duplicados
+      if (pendingCount > 0) {
+        const pendingIds = new Set(
+          pendingSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return `${data.conceptDocId}-${data.conceptIndex}`;
+          })
+        );
+        
+        // Filtramos los conceptos que NO están en pendingIds
+        allConceptsData = allConceptsData.filter(concept => !pendingIds.has(concept.id));
+      }
 
       // Seleccionar conceptos aleatorios para la sesión de estudio (máx. 20)
       const shuffled = allConceptsData.sort(() => 0.5 - Math.random());
@@ -498,15 +514,24 @@ const StudyModePage = () => {
     }
   };
 
-  // Cambiar entre modo estudio y repaso
+  // Reemplazo de la función toggleReviewMode
   const toggleReviewMode = () => {
-    setShowReviewMode(!showReviewMode);
+    // Cambiamos el modo
+    setShowReviewMode(prevMode => !prevMode);
+    
+    // Reseteamos los estados importantes para evitar datos inconsistentes
+    setCurrentConcepts([]);
+    setConceptsRemaining(0);
+    
+    // Volvemos a cargar los conceptos con el nuevo modo
     if (selectedNotebook) {
-      fetchConcepts(selectedNotebook.id);
+      setTimeout(() => {
+        fetchConcepts(selectedNotebook.id);
+      }, 50); // Pequeño retraso para asegurar que showReviewMode ya cambió
     }
   };
 
-  // Renderizar página de selección de cuaderno
+  // Reemplazo de la función renderNotebookSelection
   const renderNotebookSelection = () => {
     return (
       <div className="study-notebook-selection">
@@ -541,40 +566,38 @@ const StudyModePage = () => {
 
         {selectedNotebook && (
           <div className="start-study-container">
-            <p>{currentConcepts.length} conceptos disponibles para estudiar</p>
-            
-            {pendingReview > 0 && (
-              <div className="review-toggle">
-                <div className="toggle-container">
-                  <span className={`toggle-label ${!showReviewMode ? 'active' : ''}`}>
-                    Modo estudio
-                  </span>
-                  <label className="toggle-switch">
-                    <input 
-                      type="checkbox" 
-                      checked={showReviewMode}
-                      onChange={toggleReviewMode}
-                    />
-                    <span className="switch-slider"></span>
-                  </label>
-                  <span className={`toggle-label ${showReviewMode ? 'active' : ''}`}>
-                    Modo repaso
+            {/* Reemplazar el texto estático por una visualización dinámica y correcta */}          
+            <div className="review-toggle">
+              <div className="toggle-container">
+                <span className={`toggle-label ${!showReviewMode ? 'active' : ''}`}>
+                  Modo repaso
+                </span>
+                <label className="toggle-switch">
+                  <input 
+                    type="checkbox" 
+                    checked={showReviewMode}
+                    onChange={toggleReviewMode}
+                  />
+                  <span className="switch-slider"></span>
+                </label>
+                <span className={`toggle-label ${showReviewMode ? 'active' : ''}`}>
+                  Modo estudio
+                </span>
+              </div>
+              {pendingReview > 0 && !showReviewMode && (
+                <div className="review-badge-container">
+                  <span className="review-badge">
+                    {pendingReview} pendientes
                   </span>
                 </div>
-                {pendingReview > 0 && (
-                  <div className="review-badge-container">
-                    <span className="review-badge">
-                      {pendingReview} pendientes
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
+              )}
+            </div>
             
             <button
               className={`start-study-button ${showReviewMode ? 'review-mode' : ''}`}
               onClick={handleStartStudy}
-              disabled={currentConcepts.length === 0}
+              disabled={(showReviewMode && pendingReview === 0) || 
+                      (!showReviewMode && currentConcepts.length === 0)}
             >
               <i className={`fas ${showReviewMode ? 'fa-sync-alt' : 'fa-play'}`}></i>
               {showReviewMode ? 'Comenzar repaso' : 'Comenzar a estudiar'}
@@ -635,7 +658,7 @@ const StudyModePage = () => {
           <div className="progress-text">
             <span>
               <strong>{conceptsCompleted}</strong> de <strong>{conceptsCompleted + conceptsRemaining}</strong> conceptos
-              {showReviewMode && <span className="mode-indicator"> · Modo Repaso</span>}
+              {showReviewMode && <span className="mode-indicator"> · Modo Estudio</span>}
             </span>
           </div>
           <div className="progress-bar">
@@ -779,7 +802,7 @@ const StudyModePage = () => {
           </button>
 
           <h1>
-            {selectedNotebook ? selectedNotebook.title : 'Modo Estudio'}
+            {selectedNotebook ? selectedNotebook.title : 'Modo Repaso'}
             {showReviewMode && studyStarted && <span className="mode-badge">Repaso</span>}
           </h1>
 
