@@ -80,6 +80,28 @@ export const useStudyService = () => {
   const [error, setError] = useState<string | null>(null);
   
   /**
+   * Registra actividad de estudio del usuario
+   */
+  const logStudyActivity = useCallback(
+    async (userId: string, type: string, description: string): Promise<void> => {
+      try {
+        const activityData = {
+          userId,
+          type,
+          description,
+          timestamp: serverTimestamp()
+        };
+        
+        await addDoc(collection(db, 'userActivities'), activityData);
+      } catch (err) {
+        console.error('Error logging study activity:', err);
+        // No interrumpir la experiencia por errores en registro
+      }
+    },
+    []
+  );
+  
+  /**
    * Crea una nueva sesión de estudio en Firestore
    */
   const createStudySession = useCallback(
@@ -327,6 +349,70 @@ export const useStudyService = () => {
   );
   
   /**
+   * Procesa respuestas de quiz sin afectar al algoritmo SRS
+   * Solo registra estadísticas de acierto/fallo
+   */
+  const processQuizResponse = useCallback(
+    async (userId: string, conceptId: string, wasCorrect: boolean, sessionId: string): Promise<void> => {
+      try {
+        // 1. Actualizar solo estadísticas de quiz sin modificar el algoritmo SRS
+        const quizStatsRef = doc(db, 'users', userId, 'quizStats', conceptId);
+        
+        // Obtener estadísticas previas si existen
+        const quizStatsDoc = await getDoc(quizStatsRef);
+        
+        if (quizStatsDoc.exists()) {
+          // Actualizar estadísticas existentes
+          await updateDoc(quizStatsRef, {
+            totalAttempts: increment(1),
+            correctAnswers: wasCorrect ? increment(1) : increment(0),
+            lastAttempted: serverTimestamp(),
+            [`history.${new Date().toISOString()}`]: wasCorrect
+          });
+        } else {
+          // Crear nuevas estadísticas
+          await setDoc(quizStatsRef, {
+            conceptId,
+            totalAttempts: 1,
+            correctAnswers: wasCorrect ? 1 : 0,
+            lastAttempted: serverTimestamp(),
+            history: {
+              [new Date().toISOString()]: wasCorrect
+            },
+            createdAt: serverTimestamp()
+          });
+        }
+        
+        // 2. Actualizar la sesión con este concepto contestado
+        if (sessionId) {
+          const sessionRef = doc(db, 'studySessions', sessionId);
+          await updateDoc(sessionRef, {
+            conceptsStudied: increment(1),
+            [`quizResponses.${conceptId}`]: wasCorrect
+          });
+        }
+        
+        // 3. Actualizar estadísticas generales del usuario
+        await updateUserStats(userId, {
+          totalQuizAnswers: increment(1),
+          totalQuizCorrect: wasCorrect ? increment(1) : increment(0)
+        });
+        
+        // 4. Registrar actividad para análisis
+        await logStudyActivity(
+          userId,
+          'quiz_response',
+          `Quiz response for concept ${conceptId}: ${wasCorrect ? 'correct' : 'incorrect'}`
+        );
+      } catch (err) {
+        console.error('Error processing quiz response:', err);
+        setError('No se pudo guardar la respuesta del quiz');
+      }
+    },
+    [updateUserStats, logStudyActivity]
+  );
+  
+  /**
    * Obtiene conceptos que están listos para repasar hoy
    */
   const getDueConceptsForReview = useCallback(
@@ -403,6 +489,23 @@ export const useStudyService = () => {
         
         if (conceptDocs.length === 0) return [];
         
+        // Crear una lista plana de todos los conceptos
+        const allConcepts: Concept[] = [];
+        
+        for (const doc of conceptDocs) {
+          const conceptosData = doc.data().conceptos || [];
+          conceptosData.forEach((concepto: any, index: number) => {
+            allConcepts.push({
+              ...concepto,
+              docId: doc.id,
+              index,
+              id: `${doc.id}-${index}`
+            });
+          });
+        }
+        
+        if (allConcepts.length === 0) return [];
+        
         // 2. Obtener los conceptos que ya se han estudiado
         const learningDataQuery = query(
           collection(db, 'users', userId, 'learningData')
@@ -414,31 +517,25 @@ export const useStudyService = () => {
         const studiedConceptIds = new Set();
         
         learningDataSnapshot.forEach(doc => {
-          studiedConceptIds.add(doc.id);
+          studiedConceptIds.add(doc.data().conceptId);
         });
         
         // 3. Filtrar solo los conceptos no estudiados aún
-        const newConceptsFlat: Concept[] = [];
+        const unstudiedConcepts = allConcepts.filter(concept => 
+          !studiedConceptIds.has(concept.id)
+        );
         
-        for (const doc of conceptDocs) {
-          const conceptosData = doc.data().conceptos || [];
-          conceptosData.forEach((concepto: any, index: number) => {
-            const conceptId = `${doc.id}-${index}`;
-            
-            if (!studiedConceptIds.has(conceptId)) {
-              newConceptsFlat.push({
-                ...concepto,
-                docId: doc.id,
-                index,
-                id: conceptId
-              });
-            }
-          });
+        // Si hay conceptos no estudiados, devolver esos (hasta el límite)
+        if (unstudiedConcepts.length > 0) {
+          // Ordenar aleatoriamente para variedad
+          const shuffled = unstudiedConcepts.sort(() => 0.5 - Math.random());
+          return shuffled.slice(0, Math.min(limit, shuffled.length));
         }
         
-        // 4. Seleccionar aleatoriamente un subconjunto para esta sesión
-        const shuffled = newConceptsFlat.sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, Math.min(limit, shuffled.length));
+        // Si todos han sido estudiados, devolver todos los conceptos
+        // (también ordenados aleatoriamente y limitados)
+        const shuffledAll = allConcepts.sort(() => 0.5 - Math.random());
+        return shuffledAll.slice(0, Math.min(limit, shuffledAll.length));
       } catch (err) {
         console.error('Error getting new concepts:', err);
         setError('No se pudieron cargar los conceptos para estudio');
@@ -449,52 +546,33 @@ export const useStudyService = () => {
   );
   
   /**
-   * Obtiene conceptos para modo quiz (mezcla de conceptos recientes y antiguos)
+   * Obtiene conceptos para modo quiz (mezcla aleatoria de conceptos)
    */
   const getConceptsForQuiz = useCallback(
-    async (userId: string, notebookId: string, limit: number = 20): Promise<Concept[]> => {
+    async (userId: string, notebookId: string, limit: number = 10): Promise<Concept[]> => {
       try {
-        // 1. Obtener conceptos ya estudiados, ordenados por última fecha de repaso
-        const learningDataQuery = query(
-          collection(db, 'users', userId, 'learningData'),
-          orderBy('lastReviewDate', 'desc')
-        );
-        
-        const learningDataSnapshot = await getDocs(learningDataQuery);
-        
-        // Obtener los documentos de conceptos
+        // 1. Obtener todos los conceptos del cuaderno
         const conceptDocs = await getConceptsFromNotebook(notebookId);
+        
         if (conceptDocs.length === 0) return [];
         
-        // Crear una lista de conceptos para el quiz, con prioridad a los recientemente estudiados
-        const quizConcepts: Concept[] = [];
-        const recentConceptIds = new Set<string>();
+        // Crear una lista plana de todos los conceptos
+        const allConcepts: Concept[] = [];
         
-        // Añadir los conceptos más recientes
-        learningDataSnapshot.forEach(doc => {
-          const data = doc.data();
-          recentConceptIds.add(data.conceptId);
-        });
-        
-        // Buscar los conceptos correspondientes
         for (const doc of conceptDocs) {
           const conceptosData = doc.data().conceptos || [];
           conceptosData.forEach((concepto: any, index: number) => {
-            const conceptId = `${doc.id}-${index}`;
-            
-            if (recentConceptIds.has(conceptId)) {
-              quizConcepts.push({
-                ...concepto,
-                docId: doc.id,
-                index,
-                id: conceptId
-              });
-            }
+            allConcepts.push({
+              ...concepto,
+              docId: doc.id,
+              index,
+              id: `${doc.id}-${index}`
+            });
           });
         }
         
-        // Ordenar aleatoriamente para el quiz
-        const shuffled = quizConcepts.sort(() => 0.5 - Math.random());
+        // Seleccionar hasta el límite de conceptos aleatoriamente para el quiz
+        const shuffled = allConcepts.sort(() => 0.5 - Math.random());
         return shuffled.slice(0, Math.min(limit, shuffled.length));
       } catch (err) {
         console.error('Error getting quiz concepts:', err);
@@ -702,28 +780,6 @@ export const useStudyService = () => {
   );
   
   /**
-   * Registra actividad de estudio del usuario
-   */
-  const logStudyActivity = useCallback(
-    async (userId: string, type: string, description: string): Promise<void> => {
-      try {
-        const activityData = {
-          userId,
-          type,
-          description,
-          timestamp: serverTimestamp()
-        };
-        
-        await addDoc(collection(db, 'userActivities'), activityData);
-      } catch (err) {
-        console.error('Error logging study activity:', err);
-        // No interrumpir la experiencia por errores en registro
-      }
-    },
-    []
-  );
-  
-  /**
    * Función auxiliar para obtener todos los conceptos de un cuaderno
    */
   const getConceptsFromNotebook = useCallback(
@@ -737,28 +793,32 @@ export const useStudyService = () => {
     },
     []
   );
-  
+
   /**
-   * Función auxiliar para obtener todos los IDs de conceptos de un cuaderno
+   * Función auxiliar para obtener solo los IDs de conceptos de un cuaderno
    */
   const getConceptIdsFromNotebook = useCallback(
     async (notebookId: string): Promise<string[]> => {
-      const conceptDocs = await getConceptsFromNotebook(notebookId);
-      
-      if (conceptDocs.length === 0) return [];
-      
-      const conceptIds: string[] = [];
-      
-      for (const doc of conceptDocs) {
-        const conceptosData = doc.data().conceptos || [];
-        conceptosData.forEach((_: any, index: number) => {
-          conceptIds.push(`${doc.id}-${index}`);
-        });
+      try {
+        const conceptDocs = await getConceptsFromNotebook(notebookId);
+        
+        // Crear una lista plana de todos los IDs de conceptos
+        const conceptIds: string[] = [];
+        
+        for (const doc of conceptDocs) {
+          const conceptosData = doc.data().conceptos || [];
+          conceptosData.forEach((_: any, index: number) => {
+            conceptIds.push(`${doc.id}-${index}`);
+          });
+        }
+        
+        return conceptIds;
+      } catch (err) {
+        console.error('Error getting concept IDs:', err);
+        return [];
       }
-      
-      return conceptIds;
     },
-    []
+    [getConceptsFromNotebook]
   );
   
   return {
@@ -766,6 +826,7 @@ export const useStudyService = () => {
     createStudySession,
     completeStudySession,
     processConceptResponse,
+    processQuizResponse,
     getDueConceptsForReview,
     getNewConceptsForStudy,
     getConceptsForQuiz,
