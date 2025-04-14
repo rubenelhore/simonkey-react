@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, ChangeEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { db, auth } from '../services/firebase'; // Add auth import
+import { db, auth } from '../services/firebase';
 import { doc, getDoc, updateDoc, deleteDoc } from 'firebase/firestore';
 import '../styles/ConceptDetail.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
@@ -40,7 +40,7 @@ const triggerAutoRead = (delay = 1000) => {
   }, delay);
 };
 
-const ConceptDetail = () => {
+const ConceptDetail: React.FC = () => {
   const { notebookId, conceptoId, index } = useParams<{ 
     notebookId: string, 
     conceptoId: string, 
@@ -309,7 +309,6 @@ const ConceptDetail = () => {
   };
 
   const handleEditConcept = () => {
-    // Iniciar el modo de edición copiando el concepto actual
     if (concepto) {
       setEditedConcept({ ...concepto } as Concept);
     }
@@ -320,7 +319,6 @@ const ConceptDetail = () => {
     if (!editedConcept || !notebookId || !conceptoId) return;
     
     try {
-      // Obtenemos la referencia y datos actuales
       const conceptoRef = doc(db, 'conceptos', conceptoId);
       const conceptoSnap = await getDoc(conceptoRef);
       
@@ -328,20 +326,16 @@ const ConceptDetail = () => {
         throw new Error("El documento de conceptos no existe");
       }
       
-      // Obtenemos la lista completa de conceptos
       const allConceptos = conceptoSnap.data().conceptos;
       const idx = parseInt(index || '0');
       
-      // Creamos una nueva lista con el concepto actualizado
       const updatedConceptos = [...allConceptos];
       updatedConceptos[idx] = editedConcept;
       
-      // Actualizamos el documento en Firebase
       await updateDoc(conceptoRef, {
         conceptos: updatedConceptos
       });
       
-      // Actualizamos el estado local
       setConcepto(editedConcept);
       setIsEditing(false);
       
@@ -652,7 +646,7 @@ const ConceptDetail = () => {
                       id="edit-term"
                       type="text"
                       value={editedConcept?.término || ''}
-                      onChange={(e) => setEditedConcept({
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setEditedConcept({
                         ...editedConcept as Concept,
                         término: e.target.value
                       })}
@@ -665,7 +659,7 @@ const ConceptDetail = () => {
                     <textarea
                       id="edit-definition"
                       value={editedConcept?.definición || ''}
-                      onChange={(e) => setEditedConcept({
+                      onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setEditedConcept({
                         ...editedConcept as Concept,
                         definición: e.target.value
                       })}
@@ -680,7 +674,7 @@ const ConceptDetail = () => {
                       id="edit-source"
                       type="text"
                       value={editedConcept?.fuente || ''}
-                      onChange={(e) => setEditedConcept({
+                      onChange={(e: ChangeEvent<HTMLInputElement>) => setEditedConcept({
                         ...editedConcept as Concept,
                         fuente: e.target.value
                       })}
@@ -746,10 +740,9 @@ const ConceptDetail = () => {
 
             <div className="personal-notes-content">
               {!isEditingNotes ? (
-                // Modo de visualización de notas
                 notasPersonales ? (
                   <div className="notes-text">
-                    {notasPersonales.split('\n').map((line, i) => (
+                    {notasPersonales.split('\n').map((line: string, i: number) => (
                       <p key={i}>{line}</p>
                     ))}
                     <TextToSpeech text={notasPersonales} buttonClassName="notes-tts-button" />
@@ -761,11 +754,10 @@ const ConceptDetail = () => {
                   </div>
                 )
               ) : (
-                // Modo de edición de notas
                 <textarea
                   className="notes-textarea"
                   value={notasPersonales}
-                  onChange={(e) => setNotasPersonales(e.target.value)}
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setNotasPersonales(e.target.value)}
                   placeholder="Escribe tus notas personales aquí. Puedes incluir ejemplos, asociaciones o cualquier cosa que te ayude a entender mejor este concepto."
                   rows={10}
                 />
