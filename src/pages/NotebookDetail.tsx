@@ -267,17 +267,30 @@ const NotebookDetail = () => {
       // Parse the JSON response
       let conceptosExtraidos: Concept[] = [];
       try {
-        // Find JSON in the response
-        const jsonMatch = respuesta.match(/\[.*\]/);
-        if (jsonMatch) {
-          conceptosExtraidos = JSON.parse(jsonMatch[0]);
-        } else {
-          throw new Error("No JSON array found in response");
+        // Clean the response: remove potential markdown backticks and trim whitespace
+        let cleanedRespuesta = respuesta.trim();
+        if (cleanedRespuesta.startsWith("```json")) {
+          cleanedRespuesta = cleanedRespuesta.substring(7, cleanedRespuesta.length - 3).trim();
+        } else if (cleanedRespuesta.startsWith("```")) { 
+          cleanedRespuesta = cleanedRespuesta.substring(3, cleanedRespuesta.length - 3).trim();
         }
+
+        // Directly parse the cleaned response
+        conceptosExtraidos = JSON.parse(cleanedRespuesta);
+
       } catch (e) {
         console.error('Error parsing JSON response:', e);
-        console.log('Raw response:', respuesta);
+        console.log('Raw response received:', respuesta); // Log original response for debugging
         alert('Error al interpretar la respuesta de la IA. Por favor intenta de nuevo.');
+        setCargando(false);
+        return;
+      }
+
+      // --- Check if the result is actually an array ---
+      if (!Array.isArray(conceptosExtraidos)) {
+        console.error('Parsed response is not an array:', conceptosExtraidos);
+        console.log('Raw response received:', respuesta);
+        alert('La respuesta de la IA no tuvo el formato esperado (array JSON). Intenta de nuevo.');
         setCargando(false);
         return;
       }
