@@ -88,10 +88,10 @@ const Pricing: React.FC = () => {
                   <div className="plan-price">
                     <span className="plan-price-currency">$</span>
                     <span className={showAnnual ? 'annual-price' : 'monthly-price'}>
-                    {showAnnual ? '89.99' : '9.99'}
+                    {showAnnual ? '100 USD' : '10 USD'}
                     </span>
                     <span className="plan-price-period">{showAnnual ? '/año' : '/mes'}</span>
-                    {showAnnual && <span className="monthly-equivalent" style={{ fontSize: '0.40em', color: '#1DB173' }}>($7.50/mes)</span>}
+                    {showAnnual && <span className="monthly-equivalent" style={{ fontSize: '0.40em', color: '#1DB173' }}>($8.34 USD/mes)</span>}
                   </div>
                   <p className="plan-description">Ideal para estudiantes que quieren para maximizar el tiempo y eficiencia de estudio. </p>
                 </div>
@@ -131,10 +131,10 @@ const Pricing: React.FC = () => {
                 <div className="plan-price">
                   <span className="plan-price-currency">$</span>
                   <span className={showAnnual ? 'annual-price' : 'monthly-price'}>
-                  {showAnnual ? '69.99' : '7.99'}
+                  {showAnnual ? '120 USD' : '13 USD'}
                   </span>
                   <span className="plan-price-period">{showAnnual ? '/año' : '/mes'}</span>
-                  {showAnnual && <span className="monthly-equivalent" style={{ fontSize: '0.40em', color: '#1DB173' }}>($5.90/mes)</span>}
+                  {showAnnual && <span className="monthly-equivalent" style={{ fontSize: '0.40em', color: '#1DB173' }}>($10 USD/mes)</span>}
                 </div>
                 <p className="plan-description">Ideal para Instituciones. Precios a partir de 20 alumnos.</p>
               </div>
